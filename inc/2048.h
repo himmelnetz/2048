@@ -38,6 +38,7 @@ public:
 
 };
 
+//should be immutable...but have that reset state thingy. TODO
 class State_2048 {
 
 private:
@@ -60,15 +61,27 @@ public:
 
 };
 
+class Player_2048 {
+
+private:
+
+public:
+
+    virtual void init(/*possibly put things like config here?*/) = 0;
+    virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves) = 0;
+
+};
+
 class Game_2048 {
 
 private:
 
+    Player_2048* player;
     State_2048 cur_state;
 
 public:
 
-    Game_2048(Random_Policy* random_policy);
+    Game_2048(Player_2048* player, Random_Policy* random_policy);
     ~Game_2048();
 
     void play_game();

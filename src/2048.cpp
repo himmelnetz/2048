@@ -107,8 +107,8 @@ int State_2048::get_cell_value(int row, int col) {
     return this->board[row][col];
 }
 
-Game_2048::Game_2048(Random_Policy* random_policy)
-        : cur_state(random_policy) {
+Game_2048::Game_2048(Player_2048* player, Random_Policy* random_policy)
+        : player{player}, cur_state(random_policy) {
     //nothing right now
 }
 
