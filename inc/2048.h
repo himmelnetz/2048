@@ -19,6 +19,10 @@ enum class Move_2048 {
     RIGHT
 };
 
+static const int NUM_MOVES = 4;
+static const Move_2048 ALL_MOVES[NUM_MOVES] = {Move_2048::UP, Move_2048::DOWN, Move_2048::LEFT, Move_2048::RIGHT};
+
+
 class Random_Policy {
 
 private:
@@ -48,7 +52,17 @@ private:
     Random_Policy* random_policy;
 
     void reset_to_blank_state();
-    bool add_random_cell();
+    void copy_state(State_2048* other_state);
+
+    bool combine_cells_row(int row, int dir, bool dont_modify);
+    bool combine_cells_col(int col, int dir, bool dont_modify);
+    bool combine_cells(int drow, int dcol, bool dont_modify);
+    bool cascade_row(int row, int dir, bool dont_modify);
+    bool cascade_col(int col, int dir, bool dont_modify);
+    bool cascade(int drow, int dcol, bool dont_modify);
+    bool try_make_move(Move_2048 move, bool dont_modify);
+
+    bool is_legal_move(Move_2048 move);
 
 public:
 
@@ -56,8 +70,12 @@ public:
     ~State_2048();
 
     void reset_to_initial_state();
+    bool add_random_cell();
 
     int get_cell_value(int row, int col);
+    int get_legal_moves(Move_2048* legal_moves); //legal moves must be big enough to hold everything
+
+    State_2048 make_move(Move_2048 move);
 
 };
 
