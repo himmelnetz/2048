@@ -2,6 +2,7 @@
 #include "2048.h"
 
 #include <stdlib.h> //rand, srand
+#include <stdio.h> //printf
 
 void convert_move_to_drow_dcol(Move_2048 move, int &drow, int &dcol) {
     switch (move) {
@@ -273,11 +274,15 @@ int State_2048::get_cell_value(int row, int col) {
     return this->board[row][col];
 }
 
+int State_2048::get_score() {
+    return this->score;
+}
+
 int State_2048::get_legal_moves(Move_2048* legal_moves) {
     int num_legal_moves = 0;
     for (int i = 0; i < NUM_MOVES; i++) {
         Move_2048 cur_move = ALL_MOVES[i];
-        if (this->try_make_move(cur_move, false)) {
+        if (this->try_make_move(cur_move, true)) {
             legal_moves[num_legal_moves] = cur_move;
             num_legal_moves++;
         }
@@ -288,9 +293,64 @@ int State_2048::get_legal_moves(Move_2048* legal_moves) {
 State_2048 State_2048::make_move(Move_2048 move) {
     State_2048 new_state(this->random_policy);
     new_state.copy_state(this);
-    bool something_happened = new_state.try_make_move(move, true);
+    bool something_happened = new_state.try_make_move(move, false);
     assert (something_happened);
     return new_state;
+}
+
+Player_2048::~Player_2048() {
+    //should be empty
+}
+
+Console_Player_2048::Console_Player_2048() {
+    //nothing right now...
+}
+
+Console_Player_2048::~Console_Player_2048() {
+    //nothing right now...
+}
+
+void Console_Player_2048::print_state_to_console(State_2048 &state) {
+    for (int row = 0; row < NUM_ROWS; row++) {
+        if (row != 0) {
+            for (int i = 0; i < (5 * NUM_COLS - 1); i++) {printf("-");}
+            printf("\n");
+        }
+        for (int col = 0; col < NUM_COLS; col++) {
+            if (col != 0) {printf("|");}
+            printf("%4d", state.get_cell_value(row, col));
+        }
+        printf("\n");
+    }
+    printf("\nScore: %d\n\n", state.get_score());
+    return;
+}
+
+void Console_Player_2048::print_legal_moves(int num_legal_moves, Move_2048* legal_moves) {
+    printf("Legal Moves: ");
+    for (int i = 0; i < num_legal_moves; i++) {
+        if (i != 0) {printf(", ");}
+        switch (legal_moves[i]) {
+            case Move_2048::UP: printf("UP"); break;
+            case Move_2048::DOWN: printf("DOWN"); break;
+            case Move_2048::LEFT: printf("LEFT"); break;
+            case Move_2048::RIGHT: printf("RIGHT"); break;
+            default: assert(false);
+        }
+    }
+    printf("\n");
+}
+
+void Console_Player_2048::init() {
+    //nothing right now...
+}
+
+int Console_Player_2048::get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves) {
+    //haha very funny im using printf which isnt good blah blah. i used it here because i just need a quick console interface for making sure the functionality is correct
+    this->print_state_to_console(state);
+    this->print_legal_moves(num_legal_moves, legal_moves);
+    assert (false);
+    return 123456789;
 }
 
 Game_2048::Game_2048(Player_2048* player, Random_Policy* random_policy)
@@ -303,6 +363,7 @@ Game_2048::~Game_2048() {
 }
 
 void Game_2048::play_game() {
+    this->cur_state.reset_to_initial_state();
     while (true) {
         //get legal moves, if none are left then end game, ask player what move to do, make the move and add a new random piece (assert it can), loop
         Move_2048 legal_moves[NUM_MOVES];

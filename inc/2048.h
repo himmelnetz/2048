@@ -73,6 +73,7 @@ public:
     bool add_random_cell();
 
     int get_cell_value(int row, int col);
+    int get_score();
     int get_legal_moves(Move_2048* legal_moves); //legal moves must be big enough to hold everything
 
     State_2048 make_move(Move_2048 move);
@@ -85,8 +86,26 @@ private:
 
 public:
 
+    virtual ~Player_2048() = 0;
     virtual void init(/*possibly put things like config here?*/) = 0;
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves) = 0;
+
+};
+
+class Console_Player_2048 : public Player_2048 {
+
+private:
+
+    void print_state_to_console(State_2048 &state);
+    void print_legal_moves(int num_legal_moves, Move_2048* legal_moves);
+
+public:
+
+    Console_Player_2048();
+    virtual ~Console_Player_2048();
+
+    virtual void init();
+    virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
 
 };
 
