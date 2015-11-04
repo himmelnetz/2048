@@ -98,6 +98,7 @@ private:
 
     void print_state_to_console(State_2048 &state);
     void print_legal_moves(int num_legal_moves, Move_2048* legal_moves);
+    int try_get_move(char c, int num_legal_moves, Move_2048* legal_moves);
 
 public:
 

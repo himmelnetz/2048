@@ -129,7 +129,7 @@ bool State_2048::combine_cells_col(int col, int dir, bool dont_modify) {
             //something is in this cell
             if (prev_row == -1 || this->board[row][col] != this->board[prev_row][col]) {
                 //dont combine
-                prev_row = col;
+                prev_row = row;
             } else {
                 //combine
                 if (dont_modify) {return true;}
@@ -149,11 +149,13 @@ bool State_2048::combine_cells(int drow, int dcol, bool dont_modify) {
     bool something_happened = false;
     if (drow == 0) {
         for (int row = 0; row < NUM_ROWS; row++) {
-            something_happened = this->combine_cells_row(row, dcol, dont_modify) || something_happened;
+            bool something_combined = this->combine_cells_row(row, -dcol, dont_modify);
+            something_happened = something_happened || something_combined;
         }
     } else {
         for (int col = 0; col < NUM_COLS; col++) {
-            something_happened = this->combine_cells_col(col, drow, dont_modify) || something_happened;
+            bool something_combined = this->combine_cells_col(col, -drow, dont_modify);
+            something_happened = something_happened || something_combined;
         }
     }
     return something_happened;
@@ -204,11 +206,13 @@ bool State_2048::cascade(int drow, int dcol, bool dont_modify) {
     bool something_happened = false;
     if (drow == 0) {
         for (int row = 0; row < NUM_ROWS; row++) {
-            something_happened = this->cascade_row(row, dcol, dont_modify) || something_happened;
+            bool something_cascaded = this->cascade_row(row, -dcol, dont_modify);
+            something_happened = something_happened || something_cascaded;
         }
     } else {
         for (int col = 0; col < NUM_COLS; col++) {
-            something_happened = this->cascade_col(col, drow, dont_modify) || something_happened;
+            bool something_cascaded = this->cascade_col(col, -drow, dont_modify);
+            something_happened = something_happened || something_cascaded;
         }
     }
     return something_happened;
@@ -341,6 +345,27 @@ void Console_Player_2048::print_legal_moves(int num_legal_moves, Move_2048* lega
     printf("\n");
 }
 
+int Console_Player_2048::try_get_move(char c, int num_legal_moves, Move_2048* legal_moves) {
+    Move_2048 requested_move;
+    if (c == 'w' || c == 'W') {
+        requested_move = Move_2048::UP;
+    } else if (c == 's' || c == 'S') {
+        requested_move = Move_2048::DOWN;
+    } else if (c == 'a' || c == 'A') {
+        requested_move = Move_2048::LEFT;
+    } else if (c == 'd' || c == 'D') {
+        requested_move = Move_2048::RIGHT;
+    } else {
+        return -1;
+    }
+    for (int i = 0; i < num_legal_moves; i++) {
+        if (legal_moves[i] == requested_move) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void Console_Player_2048::init() {
     //nothing right now...
 }
@@ -349,8 +374,20 @@ int Console_Player_2048::get_move(State_2048 &state, int num_legal_moves, Move_2
     //haha very funny im using printf which isnt good blah blah. i used it here because i just need a quick console interface for making sure the functionality is correct
     this->print_state_to_console(state);
     this->print_legal_moves(num_legal_moves, legal_moves);
+    while (true) {
+        printf("Enter move using WASD: ");
+        char c;
+        int num_returned = scanf("%c", &c);
+        assert (num_returned == 1);
+        if (c == '\n') {continue;}
+        int move_i = this->try_get_move(c, num_legal_moves, legal_moves);
+        if (move_i != -1) {
+            return move_i;
+        }
+        printf("Illegal Move\n");
+    }
     assert (false);
-    return 123456789;
+    return 0;
 }
 
 Game_2048::Game_2048(Player_2048* player, Random_Policy* random_policy)
