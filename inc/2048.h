@@ -6,8 +6,10 @@
 #include <assert.h>
 
 #include <vector>
+#include <string>
 
 using std::vector;
+using std::string;
 
 static const int NUM_ROWS = 4;
 static const int NUM_COLS = 4;
@@ -109,6 +111,20 @@ public:
 
 };
 
+class Zed_Player_2048 : public Player_2048 {
+
+private:
+
+public:
+
+    Zed_Player_2048();
+    virtual ~Zed_Player_2048();
+
+    virtual void init();
+    virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+
+};
+
 class Trace_2048 {
 
 private:
@@ -135,6 +151,27 @@ public:
     virtual void on_player_move(Move_2048 move, double thinking_time_msec);
     virtual void on_new_state(State_2048 &state);
     virtual void end_trace();
+};
+
+class State_Only_File_Trace_2048 : public Trace_2048 {
+
+private:
+
+    string filename;
+    vector<string> state_strings;
+    bool trace_written;
+
+    string convert_state_to_string(State_2048 &state);
+
+public:
+
+    State_Only_File_Trace_2048(string filename);
+    virtual ~State_Only_File_Trace_2048();
+    virtual void start_trace();
+    virtual void on_player_move(Move_2048 move, double thinking_time_msec);
+    virtual void on_new_state(State_2048 &state);
+    virtual void end_trace();
+
 };
 
 class Game_2048 {
