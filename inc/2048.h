@@ -22,7 +22,6 @@ enum class Move_2048 {
 static const int NUM_MOVES = 4;
 static const Move_2048 ALL_MOVES[NUM_MOVES] = {Move_2048::UP, Move_2048::DOWN, Move_2048::LEFT, Move_2048::RIGHT};
 
-
 class Random_Policy {
 
 private:
@@ -86,7 +85,7 @@ private:
 
 public:
 
-    virtual ~Player_2048() = 0;
+    virtual ~Player_2048();
     virtual void init(/*possibly put things like config here?*/) = 0;
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves) = 0;
 
@@ -110,16 +109,45 @@ public:
 
 };
 
+class Trace_2048 {
+
+private:
+
+public:
+
+    virtual ~Trace_2048() = 0;
+    virtual void start_trace() = 0;
+    virtual void on_player_move(Move_2048 move, double thinking_time_msec) = 0;
+    virtual void on_new_state(State_2048 &state) = 0;
+    virtual void end_trace() = 0;
+
+};
+
+class Dev_Null_Trace_2048 : public Trace_2048 {
+
+private:
+
+public:
+
+    Dev_Null_Trace_2048();
+    virtual ~Dev_Null_Trace_2048();
+    virtual void start_trace();
+    virtual void on_player_move(Move_2048 move, double thinking_time_msec);
+    virtual void on_new_state(State_2048 &state);
+    virtual void end_trace();
+};
+
 class Game_2048 {
 
 private:
 
     Player_2048* player;
+    Trace_2048* trace;
     State_2048 cur_state;
 
 public:
 
-    Game_2048(Player_2048* player, Random_Policy* random_policy);
+    Game_2048(Player_2048* player, Trace_2048* trace, Random_Policy* random_policy);
     ~Game_2048();
 
     void play_game();

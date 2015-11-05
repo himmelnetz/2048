@@ -11,8 +11,10 @@ int main(/*int argc, char *argv[]*/) {
     int random_seed = (int) time(0);
     Random_Policy random_policy(num_values, values, weights, random_seed);
     Player_2048* player = new Console_Player_2048();
-    Game_2048 game(player, &random_policy);
+    Trace_2048* trace = new Dev_Null_Trace_2048();
+    Game_2048 game(player, trace, &random_policy);
     game.play_game();
     delete player;
+    delete trace;
     return 0;
 }
