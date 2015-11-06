@@ -412,6 +412,33 @@ int Zed_Player_2048::get_move(State_2048 &, int num_legal_moves, Move_2048*) {
     return rand() % num_legal_moves;
 }
 
+Bertha_Player_2048::Bertha_Player_2048() {
+    //nothing right now...
+}
+
+Bertha_Player_2048::~Bertha_Player_2048() {
+    //nothing right now...
+}
+
+void Bertha_Player_2048::init() {
+    //nothing right now...
+}
+
+int Bertha_Player_2048::get_move(State_2048 &, int num_legal_moves, Move_2048* legal_moves) {
+    Move_2048 move_preference[NUM_MOVES] = {Move_2048::LEFT, Move_2048::DOWN, Move_2048::UP, Move_2048::RIGHT};
+    for (int i = 0; i < NUM_MOVES; i++) {
+        Move_2048 pref_move = move_preference[i];
+        for (int j = 0; j < num_legal_moves; j++) {
+            Move_2048 cur_move = legal_moves[j];
+            if (pref_move == cur_move) {
+                return j;
+            }
+        }
+    }
+    assert (false);
+    return 0;
+}
+
 Trace_2048::~Trace_2048() {
     //should be empty
 }

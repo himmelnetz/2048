@@ -124,6 +124,20 @@ public:
 
 };
 
+class Bertha_Player_2048 : public Player_2048 {
+
+private:
+
+public:
+
+    Bertha_Player_2048();
+    virtual ~Bertha_Player_2048();
+
+    virtual void init();
+    virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+
+};
+
 class Trace_2048 {
 
 private:
