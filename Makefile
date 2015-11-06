@@ -16,6 +16,6 @@ $(ODIR)/%.o: %.cpp $(DEPS)
 	$(CC) -o $@ $(patsubst %,$(ODIR)/%,$(notdir $^)) $(CFLAGS)
 
 clean:
-	-rm -f $(ODIR)/*.o 2048
+	-rm -f $(ODIR)/*.o 2048 traces/*.trace2048 traces/*.html
 
 

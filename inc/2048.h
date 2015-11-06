@@ -43,7 +43,6 @@ public:
 
 };
 
-//should be immutable...but have that reset state thingy. TODO
 class State_2048 {
 
 private:
