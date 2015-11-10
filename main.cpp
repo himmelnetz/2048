@@ -1,8 +1,9 @@
 
 #include "2048.h"
-
-#include <stdio.h>
-#include <iostream>
+#include "random_policy.h"
+#include "player.h"
+#include "trace.h"
+#include "game.h"
 
 int main(/*int argc, char *argv[]*/) {
     int num_values = 2;
