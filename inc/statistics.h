@@ -28,7 +28,10 @@ public:
 	int get_n();
 	double get_mean();
 	double get_stdev();
-	//TODO more
+	double get_skew();
+	double get_kurtosis();
+
+	double get_median();
 
 };
 

@@ -2,6 +2,7 @@
 #include "statistics.h"
 
 #include <math.h> //sqrt
+#include <algorithm> //sort
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,6 +56,36 @@ double Summary_Statistics::get_stdev() {
     int n = this->get_n();
     long double variance = (sum_squared - (sum * sum) / n) / (n - 1);
     return sqrt(variance);
+}
+
+double Summary_Statistics::get_skew() {
+    double mean = this->get_mean();
+    long double sum_cube_diff = 0.0;
+    for (double datum : this->data) {
+        sum_cube_diff += pow(datum - mean, 3);
+    }
+    int n = this->get_n();
+    double stdev = this->get_stdev();
+    return (sum_cube_diff / n) / pow(stdev, 3);
+}
+
+double Summary_Statistics::get_kurtosis() {
+    double mean = this->get_mean();
+    long double sum_fourth_diff = 0.0;
+    for (double datum : this->data) {
+        sum_fourth_diff += pow(datum - mean, 4);
+    }
+    int n = this->get_n();
+    double stdev = this->get_stdev();
+    return (sum_fourth_diff / n) / pow(stdev, 4) - 3;
+}
+
+double Summary_Statistics::get_median() {
+    std::sort(this->data.begin(), this->data.end());
+    int n = this->data.size();
+    return n % 2 == 1
+        ? this->data[n / 2]
+        : (this->data[n / 2] + this->data[n / 2 - 1]) / 2.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
