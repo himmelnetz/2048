@@ -30,6 +30,31 @@ void convert_move_to_drow_dcol(Move_2048 move, int &drow, int &dcol) {
     }
 }
 
+int move_to_i(Move_2048 move) {
+    switch (move) {
+        case Move_2048::UP: return 0;
+        case Move_2048::DOWN: return 1;
+        case Move_2048::LEFT: return 2;
+        case Move_2048::RIGHT: return 3;
+        default:
+            assert (false);
+            return 0;
+    }
+}
+
+Move_2048 i_to_move(int i) {
+    switch (i) {
+        case 0: return Move_2048::UP;
+        case 1: return Move_2048::DOWN;
+        case 2: return Move_2048::LEFT;
+        case 3: return Move_2048::RIGHT;
+        default:
+            assert (false);
+            return Move_2048::UP;
+    }
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,8 @@
 
 #include "trace.h"
 
+#include "util.h"
+
 //these three for the string stream things and writing to files (not sure which is necessary for what)
 #include <iostream> 
 #include <sstream> 
@@ -104,6 +106,64 @@ void State_Only_File_Trace_2048::end_trace() {
     f << "}";
     f.close();
     return;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+Player_Statistics_Trace_2048::Player_Statistics_Trace_2048() {
+    //should be empty
+}
+
+Player_Statistics_Trace_2048::~Player_Statistics_Trace_2048() {
+    //should be empty
+}
+
+void Player_Statistics_Trace_2048::start_trace() {
+    this->cur_score = 0;
+    for (int i = 0; i < NUM_MOVES; i++) {
+        this->cur_game_move_counts[i] = 0;
+    }
+}
+
+void Player_Statistics_Trace_2048::on_player_move(Move_2048 move, double thinking_time_msec) {
+    int move_i = move_to_i(move);
+    this->cur_game_move_counts[move_i]++;
+    this->thinking_time_statistics.add_datum(thinking_time_msec);
+}
+
+void Player_Statistics_Trace_2048::on_new_state(State_2048 &state) {
+    this->cur_score = state.get_score();
+}
+
+void Player_Statistics_Trace_2048::end_trace() {
+    this->score_statistics.add_datum(this->cur_score);
+    int total_num_moves = 0;
+    for (int i = 0; i < NUM_MOVES; i++) {
+        int cur_count = this->cur_game_move_counts[i];
+        total_num_moves += cur_count;
+        this->move_statistics[i].add_datum(cur_count);
+    }
+    this->num_moves_per_game_statistics.add_datum(total_num_moves);
+}
+
+Summary_Statistics Player_Statistics_Trace_2048::get_score_statistics() {
+    return this->score_statistics;
+}
+
+Summary_Statistics Player_Statistics_Trace_2048::get_thinking_time_statistics() {
+    return this->thinking_time_statistics;
+}
+
+Summary_Statistics Player_Statistics_Trace_2048::get_num_moves_per_game_statistics() {
+    return this->num_moves_per_game_statistics;
+}
+
+void Player_Statistics_Trace_2048::get_move_statistics(Summary_Statistics* move_statistics) {
+    for (int i = 0; i < NUM_MOVES; i++) {
+        move_statistics[i] = this->move_statistics[i];
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

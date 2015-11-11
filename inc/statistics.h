@@ -31,7 +31,11 @@ public:
 	double get_skew();
 	double get_kurtosis();
 
+	double get_min();
+	double get_max();
 	double get_median();
+
+	void print_statistics();
 
 };
 

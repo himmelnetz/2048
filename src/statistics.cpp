@@ -80,12 +80,34 @@ double Summary_Statistics::get_kurtosis() {
     return (sum_fourth_diff / n) / pow(stdev, 4) - 3;
 }
 
+double Summary_Statistics::get_min() {
+    std::sort(this->data.begin(), this->data.end());
+    return this->data[0];
+}
+
+double Summary_Statistics::get_max() {
+    std::sort(this->data.begin(), this->data.end());
+    return this->data[this->data.size() - 1];
+}
+
 double Summary_Statistics::get_median() {
     std::sort(this->data.begin(), this->data.end());
     int n = this->data.size();
     return n % 2 == 1
         ? this->data[n / 2]
         : (this->data[n / 2] + this->data[n / 2 - 1]) / 2.0;
+}
+
+void Summary_Statistics::print_statistics() {
+    printf("Summary Statistics:\n");
+    printf("N: %d\n", this->get_n());
+    printf("Mean: %f\n", this->get_mean());
+    printf("Stdev: %f\n", this->get_stdev());
+    printf("Skew: %f\n", this->get_skew());
+    printf("Kurtosis: %f\n", this->get_kurtosis());
+    printf("Min: %f\n", this->get_min());
+    printf("Max: %f\n", this->get_max());
+    printf("Median: %f\n", this->get_median());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

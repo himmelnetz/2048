@@ -14,6 +14,7 @@ using std::string;
 static const int NUM_ROWS = 4;
 static const int NUM_COLS = 4;
 
+// i really dont want to assign them values, but i will so they can be used as array indexes
 enum class Move_2048 {
     UP,
     DOWN,
