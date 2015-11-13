@@ -11,10 +11,11 @@ int main(/*int argc, char *argv[]*/) {
     int weights[2] = {5, 1};
     int random_seed = (int) time(0);
     Random_Policy random_policy(num_values, values, weights, random_seed);
-    Player_2048* player = new Bertha_Player_2048();
+    Player_2048* player = new Rod_Player_2048();
+    //Player_2048* player = new Bertha_Player_2048();
     //Trace_2048* trace = new State_Only_File_Trace_2048("foo");
     Player_Statistics_Trace_2048* trace = new Player_Statistics_Trace_2048();
-    int num_games = 999;
+    int num_games = 99999;
     for (int i = 0; i < num_games; i++) {
         Game_2048 game(player, trace, &random_policy);
         game.play_game();
