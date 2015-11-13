@@ -54,6 +54,17 @@ Move_2048 i_to_move(int i) {
     }
 }
 
+//assumes base 2
+int cell_value_to_i(int cell_value) {
+    assert (cell_value > 0);
+    int i = 0;
+    while (cell_value != 2) {
+        assert (cell_value % 2 == 0);
+        cell_value /= 2;
+        i++;
+    }
+    return i;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

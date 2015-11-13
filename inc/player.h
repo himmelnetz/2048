@@ -125,17 +125,18 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-class Friedrich_Player_2048 : public Player_2048 {
+class Friedrich_Player_2048 : public Single_Level_Heuristic_Player_2048 {
 
 private:
+
+    int move_to_preference(Move_2048 move);
 
 public:
 
     Friedrich_Player_2048();
     virtual ~Friedrich_Player_2048();
 
-    virtual void init();
-    virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+    virtual int get_heuristic_values(State_2048 &state, Move_2048 move, int* heuristic_values);
 
 };
 

@@ -232,6 +232,18 @@ int Rod_Player_2048::get_heuristic_values(State_2048 &state, Move_2048 move, int
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+int Friedrich_Player_2048::move_to_preference(Move_2048 move) {
+    switch (move) {
+        case Move_2048::UP: return 1;
+        case Move_2048::DOWN: return 3;
+        case Move_2048::LEFT: return 4;
+        case Move_2048::RIGHT: return 2;
+        default:
+            assert (false);
+            return 0;
+    }
+}
+
 Friedrich_Player_2048::Friedrich_Player_2048() {
     //nothing right now...
 }
@@ -240,12 +252,24 @@ Friedrich_Player_2048::~Friedrich_Player_2048() {
     //nothing right now...
 }
 
-void Friedrich_Player_2048::init() {
-    //nothing right now...
-}
-
-int Friedrich_Player_2048::get_move(State_2048 &, int num_legal_moves, Move_2048*) {
-    return rand() % num_legal_moves;
+int Friedrich_Player_2048::get_heuristic_values(State_2048 &state, Move_2048 move, int* heuristic_values) {
+    int max_i = MAX_NUM_HEURISTIC_VALUES - 1;
+    for (int i = 0; i < max_i; i++) {
+        heuristic_values[i] = 0;
+    }
+    for (int row = 0; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            int cell_value = state.get_cell_value(row, col);
+            if (cell_value != 0) {
+                int i = cell_value_to_i(cell_value);
+                if (i < max_i) {
+                    heuristic_values[max_i - i - 1]++;
+                }
+            }
+        }
+    }
+    heuristic_values[MAX_NUM_HEURISTIC_VALUES - 1] = this->move_to_preference(move);
+    return MAX_NUM_HEURISTIC_VALUES;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
