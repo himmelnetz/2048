@@ -90,11 +90,13 @@ bool State_2048::combine_cells(int drow, int dcol, bool dont_modify) {
         for (int row = 0; row < NUM_ROWS; row++) {
             bool something_combined = this->combine_cells_row(row, -dcol, dont_modify);
             something_happened = something_happened || something_combined;
+            if (dont_modify && something_happened) {return something_happened;}
         }
     } else {
         for (int col = 0; col < NUM_COLS; col++) {
             bool something_combined = this->combine_cells_col(col, -drow, dont_modify);
             something_happened = something_happened || something_combined;
+            if (dont_modify && something_happened) {return something_happened;}
         }
     }
     return something_happened;
@@ -147,11 +149,13 @@ bool State_2048::cascade(int drow, int dcol, bool dont_modify) {
         for (int row = 0; row < NUM_ROWS; row++) {
             bool something_cascaded = this->cascade_row(row, -dcol, dont_modify);
             something_happened = something_happened || something_cascaded;
+            if (dont_modify && something_happened) {return something_happened;}
         }
     } else {
         for (int col = 0; col < NUM_COLS; col++) {
             bool something_cascaded = this->cascade_col(col, -drow, dont_modify);
             something_happened = something_happened || something_cascaded;
+            if (dont_modify && something_happened) {return something_happened;}
         }
     }
     return something_happened;
@@ -161,6 +165,7 @@ bool State_2048::try_make_move(Move_2048 move, bool dont_modify) {
     int drow, dcol;
     convert_move_to_drow_dcol(move, drow, dcol);
     bool combine_happened = this->combine_cells(drow, dcol, dont_modify);
+    if (dont_modify && combine_happened) {return combine_happened;}
     bool cascade_happened = this->cascade(drow, dcol, dont_modify);
     return combine_happened || cascade_happened;
 }

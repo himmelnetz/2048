@@ -1,6 +1,6 @@
 CC = g++
 IDIR = inc
-CFLAGS = -I $(IDIR) -Wall -Wextra -lm -g -O2 -std=c++11
+CFLAGS = -pg -I $(IDIR) -Wall -Wextra -lm -g -O2 -std=c++11
 
 _DEPS = 2048.h util.h state.h random_policy.h game.h trace.h player.h statistics.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
@@ -16,6 +16,6 @@ $(ODIR)/%.o: %.cpp $(DEPS)
 	$(CC) -o $@ $(patsubst %,$(ODIR)/%,$(notdir $^)) $(CFLAGS)
 
 clean:
-	-rm -f $(ODIR)/*.o 2048 traces/*.trace2048 traces/*.html
+	-rm -f $(ODIR)/*.o 2048 traces/*.trace2048 traces/*.html gmon.out
 
 
