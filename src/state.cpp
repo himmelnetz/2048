@@ -9,6 +9,9 @@
 
 State_2048::State_2048(Random_Policy* random_policy) {
     this->random_policy = random_policy;
+    for (int i = 0; i < NUM_MOVES; i++) {
+        this->cached_board_after_move_flags[i] = false;
+    }
 }
 
 void State_2048::reset_to_blank_state() {
@@ -29,6 +32,28 @@ void State_2048::copy_state(State_2048* other_state) {
     }
     this->score = other_state->score;
     this->num_empty_cells = other_state->num_empty_cells;
+}
+
+void State_2048::copy_state_to_cache(State_2048* other_state, int move_i) {
+    assert (move_i >= 0 && move_i < NUM_MOVES);
+    for (int row = 0; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            this->cached_board_after_move[move_i][row][col] = other_state->board[row][col];
+        }
+    }
+    this->cached_score_after_move[move_i] = other_state->score;
+    this->cached_num_empty_cells_after_move[move_i] = other_state->num_empty_cells;
+}
+
+void State_2048::copy_state_from_other_cache(State_2048* other_state, int move_i) {
+    assert (move_i >= 0 && move_i < NUM_MOVES);
+    for (int row = 0; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            this->board[row][col] = other_state->cached_board_after_move[move_i][row][col];
+        }
+    }
+    this->score = other_state->cached_score_after_move[move_i];
+    this->num_empty_cells = other_state->cached_num_empty_cells_after_move[move_i];
 }
 
 bool State_2048::combine_cells_row(int row, int dir, bool dont_modify) {
@@ -240,9 +265,16 @@ int State_2048::get_legal_moves(Move_2048* legal_moves) {
 
 State_2048 State_2048::make_move(Move_2048 move) {
     State_2048 new_state(this->random_policy);
-    new_state.copy_state(this);
-    bool something_happened = new_state.try_make_move(move, false);
-    assert (something_happened);
+    int move_i = move_to_i(move);
+    if (this->cached_board_after_move_flags[move_i] == true) {
+        new_state.copy_state_from_other_cache(this, move_i);
+    } else {
+        new_state.copy_state(this);
+        bool something_happened = new_state.try_make_move(move, false);
+        assert (something_happened);
+        this->copy_state_to_cache(&new_state, move_i);
+        this->cached_board_after_move_flags[move_i] = true;
+    }
     return new_state;
 }
 

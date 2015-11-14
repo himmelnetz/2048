@@ -17,10 +17,17 @@ private:
     int score;
     int num_empty_cells;
 
+    bool cached_board_after_move_flags[NUM_MOVES];
+    int cached_board_after_move[NUM_MOVES][NUM_ROWS][NUM_COLS];
+    int cached_score_after_move[NUM_MOVES];
+    int cached_num_empty_cells_after_move[NUM_MOVES];
+
     Random_Policy* random_policy;
 
     void reset_to_blank_state();
     void copy_state(State_2048* other_state);
+    void copy_state_to_cache(State_2048* other_state, int move_i);
+    void copy_state_from_other_cache(State_2048* other_state, int move_i);
 
     bool combine_cells_row(int row, int dir, bool dont_modify);
     bool combine_cells_col(int col, int dir, bool dont_modify);
