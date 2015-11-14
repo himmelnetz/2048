@@ -164,10 +164,13 @@ bool State_2048::cascade(int drow, int dcol, bool dont_modify) {
 bool State_2048::try_make_move(Move_2048 move, bool dont_modify) {
     int drow, dcol;
     convert_move_to_drow_dcol(move, drow, dcol);
-    bool combine_happened = this->combine_cells(drow, dcol, dont_modify);
-    if (dont_modify && combine_happened) {return combine_happened;}
-    bool cascade_happened = this->cascade(drow, dcol, dont_modify);
-    return combine_happened || cascade_happened;
+    if (dont_modify) {
+        return this->cascade(drow, dcol, dont_modify) || this->combine_cells(drow, dcol, dont_modify);
+    } else {
+        bool combine_happened = this->combine_cells(drow, dcol, dont_modify);
+        bool cascade_happened = this->cascade(drow, dcol, dont_modify);
+        return combine_happened || cascade_happened;
+    }
 }
 
 State_2048::~State_2048() {
