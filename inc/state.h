@@ -15,6 +15,8 @@ private:
 
     int board[NUM_ROWS][NUM_COLS];
     int score;
+    int num_empty_cells;
+
     Random_Policy* random_policy;
 
     void reset_to_blank_state();

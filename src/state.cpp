@@ -18,6 +18,7 @@ void State_2048::reset_to_blank_state() {
         }
     }
     this->score = 0;
+    this->num_empty_cells = NUM_ROWS * NUM_COLS;
 }
 
 void State_2048::copy_state(State_2048* other_state) {
@@ -27,6 +28,7 @@ void State_2048::copy_state(State_2048* other_state) {
         }
     }
     this->score = other_state->score;
+    this->num_empty_cells = other_state->num_empty_cells;
 }
 
 bool State_2048::combine_cells_row(int row, int dir, bool dont_modify) {
@@ -48,6 +50,7 @@ bool State_2048::combine_cells_row(int row, int dir, bool dont_modify) {
                 this->board[row][prev_col] *= 2;
                 this->board[row][col] = 0;
                 this->score += this->board[row][prev_col];
+                this->num_empty_cells++;
                 prev_col = -1;
                 something_happened = true;
             }
@@ -75,6 +78,7 @@ bool State_2048::combine_cells_col(int col, int dir, bool dont_modify) {
                 this->board[prev_row][col] *= 2;
                 this->board[row][col] = 0;
                 this->score += this->board[prev_row][col];
+                this->num_empty_cells++;
                 prev_row = -1;
                 something_happened = true;
             }
@@ -185,20 +189,12 @@ void State_2048::reset_to_initial_state() {
 }
 
 bool State_2048::add_random_cell() {
-    int num_empty_cells = 0;
-    for (int row = 0; row < NUM_ROWS; row++) {
-        for (int col = 0; col < NUM_COLS; col++) {
-            if (this->board[row][col] == 0) {
-                num_empty_cells++;
-            }
-        }
-    }
-    if (num_empty_cells == 0) {
+    if (this->num_empty_cells == 0) {
         return false;
     }
     
     int position_to_use, value;
-    this->random_policy->get_random_position_and_value(num_empty_cells, position_to_use, value);
+    this->random_policy->get_random_position_and_value(this->num_empty_cells, position_to_use, value);
 
     bool added_new_cell_flag = false;
     for (int row = 0; row < NUM_ROWS; row++) {
@@ -206,6 +202,7 @@ bool State_2048::add_random_cell() {
             if (this->board[row][col] == 0) {
                 if (position_to_use == 0) {
                     this->board[row][col] = value;
+                    this->num_empty_cells--;
                     added_new_cell_flag = true;
                     break;
                 } else {
