@@ -59,25 +59,44 @@ void State_2048::copy_state_from_other_cache(State_2048* other_state, int move_i
 bool State_2048::combine_cells_row(int row, int dir, bool dont_modify) {
     assert (dir == 1 || dir == -1);
     assert (row >= 0 && row < NUM_ROWS);
-    int start = (dir == 1 ? 0 : NUM_COLS - 1);
-    int end = (dir == 1 ? NUM_COLS : -1);
     int prev_col = -1;
     bool something_happened = false;
-    for (int col = start; col != end; col += dir) {
-        if (this->board[row][col] != 0) {
-            //something is in this cell
-            if (prev_col == -1 || this->board[row][col] != this->board[row][prev_col]) {
-                //dont combine
-                prev_col = col;
-            } else {
-                //combine
-                if (dont_modify) {return true;}
-                this->board[row][prev_col] *= 2;
-                this->board[row][col] = 0;
-                this->score += this->board[row][prev_col];
-                this->num_empty_cells++;
-                prev_col = -1;
-                something_happened = true;
+    if (dir == 1) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            if (this->board[row][col] != 0) {
+                //something is in this cell
+                if (prev_col == -1 || this->board[row][col] != this->board[row][prev_col]) {
+                    //dont combine
+                    prev_col = col;
+                } else {
+                    //combine
+                    if (dont_modify) {return true;}
+                    this->board[row][prev_col] *= 2;
+                    this->board[row][col] = 0;
+                    this->score += this->board[row][prev_col];
+                    this->num_empty_cells++;
+                    prev_col = -1;
+                    something_happened = true;
+                }
+            }
+        }
+    } else {
+        for (int col = NUM_COLS - 1; col > -1; col--) {
+            if (this->board[row][col] != 0) {
+                //something is in this cell
+                if (prev_col == -1 || this->board[row][col] != this->board[row][prev_col]) {
+                    //dont combine
+                    prev_col = col;
+                } else {
+                    //combine
+                    if (dont_modify) {return true;}
+                    this->board[row][prev_col] *= 2;
+                    this->board[row][col] = 0;
+                    this->score += this->board[row][prev_col];
+                    this->num_empty_cells++;
+                    prev_col = -1;
+                    something_happened = true;
+                }
             }
         }
     }
@@ -87,25 +106,44 @@ bool State_2048::combine_cells_row(int row, int dir, bool dont_modify) {
 bool State_2048::combine_cells_col(int col, int dir, bool dont_modify) {
     assert (dir == 1 || dir == -1);
     assert (col >= 0 && col < NUM_COLS);
-    int start = (dir == 1 ? 0 : NUM_ROWS - 1);
-    int end = (dir == 1 ? NUM_ROWS : -1);
     int prev_row = -1;
     bool something_happened = false;
-    for (int row = start; row != end; row += dir) {
-        if (this->board[row][col] != 0) {
-            //something is in this cell
-            if (prev_row == -1 || this->board[row][col] != this->board[prev_row][col]) {
-                //dont combine
-                prev_row = row;
-            } else {
-                //combine
-                if (dont_modify) {return true;}
-                this->board[prev_row][col] *= 2;
-                this->board[row][col] = 0;
-                this->score += this->board[prev_row][col];
-                this->num_empty_cells++;
-                prev_row = -1;
-                something_happened = true;
+    if (dir == 1) {
+        for (int row = 0; row < NUM_ROWS; row++) {
+            if (this->board[row][col] != 0) {
+                //something is in this cell
+                if (prev_row == -1 || this->board[row][col] != this->board[prev_row][col]) {
+                    //dont combine
+                    prev_row = row;
+                } else {
+                    //combine
+                    if (dont_modify) {return true;}
+                    this->board[prev_row][col] *= 2;
+                    this->board[row][col] = 0;
+                    this->score += this->board[prev_row][col];
+                    this->num_empty_cells++;
+                    prev_row = -1;
+                    something_happened = true;
+                }
+            }
+        }
+    } else {
+        for (int row = NUM_ROWS - 1; row > -1; row--) {
+            if (this->board[row][col] != 0) {
+                //something is in this cell
+                if (prev_row == -1 || this->board[row][col] != this->board[prev_row][col]) {
+                    //dont combine
+                    prev_row = row;
+                } else {
+                    //combine
+                    if (dont_modify) {return true;}
+                    this->board[prev_row][col] *= 2;
+                    this->board[row][col] = 0;
+                    this->score += this->board[prev_row][col];
+                    this->num_empty_cells++;
+                    prev_row = -1;
+                    something_happened = true;
+                }
             }
         }
     }
@@ -133,19 +171,32 @@ bool State_2048::combine_cells(int drow, int dcol, bool dont_modify) {
 
 bool State_2048::cascade_row(int row, int dir, bool dont_modify) {
     assert (dir == 1 || dir == -1);
-    int start = (dir == 1 ? 0 : NUM_COLS - 1);
-    int end = (dir == 1 ? NUM_COLS : -1);
-    int cur_col = start;
     bool something_happened = false;
-    for (int col = start; col != end; col += dir) {
-        if (this->board[row][col] != 0) {
-            if (col != cur_col) {
-                if (dont_modify) {return true;}
-                this->board[row][cur_col] = this->board[row][col];
-                this->board[row][col] = 0;
-                something_happened = true;
+    if (dir == 1) {
+        int cur_col = 0;
+        for (int col = 0; col < NUM_COLS; col++) {
+            if (this->board[row][col] != 0) {
+                if (col != cur_col) {
+                    if (dont_modify) {return true;}
+                    this->board[row][cur_col] = this->board[row][col];
+                    this->board[row][col] = 0;
+                    something_happened = true;
+                }
+                cur_col++;
             }
-            cur_col += dir;
+        }
+    } else {
+        int cur_col = NUM_COLS - 1;
+        for (int col = NUM_COLS - 1; col > -1; col--) {
+            if (this->board[row][col] != 0) {
+                if (col != cur_col) {
+                    if (dont_modify) {return true;}
+                    this->board[row][cur_col] = this->board[row][col];
+                    this->board[row][col] = 0;
+                    something_happened = true;
+                }
+                cur_col--;
+            }
         }
     }
     return something_happened;
@@ -153,19 +204,32 @@ bool State_2048::cascade_row(int row, int dir, bool dont_modify) {
 
 bool State_2048::cascade_col(int col, int dir, bool dont_modify) {
     assert (dir == 1 || dir == -1);
-    int start = (dir == 1 ? 0 : NUM_ROWS - 1);
-    int end = (dir == 1 ? NUM_ROWS : -1);
-    int cur_row = start;
     bool something_happened = false;
-    for (int row = start; row != end; row += dir) {
-        if (this->board[row][col] != 0) {
-            if (row != cur_row) {
-                if (dont_modify) {return true;}
-                this->board[cur_row][col] = this->board[row][col];
-                this->board[row][col] = 0;
-                something_happened = true;
+    if (dir == 1) {
+        int cur_row = 0;
+        for (int row = 0; row < NUM_ROWS; row++) {
+            if (this->board[row][col] != 0) {
+                if (row != cur_row) {
+                    if (dont_modify) {return true;}
+                    this->board[cur_row][col] = this->board[row][col];
+                    this->board[row][col] = 0;
+                    something_happened = true;
+                }
+                cur_row++;
             }
-            cur_row += dir;
+        }
+    } else {
+        int cur_row = NUM_ROWS - 1;
+        for (int row = NUM_ROWS - 1; row > -1; row--) {
+            if (this->board[row][col] != 0) {
+                if (row != cur_row) {
+                    if (dont_modify) {return true;}
+                    this->board[cur_row][col] = this->board[row][col];
+                    this->board[row][col] = 0;
+                    something_happened = true;
+                }
+                cur_row--;
+            }
         }
     }
     return something_happened;
