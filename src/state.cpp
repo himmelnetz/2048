@@ -55,8 +55,217 @@ void State_2048::copy_state_from_other_cache(State_2048* other_state, int move_i
     this->score = other_state->cached_score_after_move[move_i];
     this->num_empty_cells = other_state->cached_num_empty_cells_after_move[move_i];
 }
+/*
+bool State_2048::can_combine_cells_row(int row, int dir) {
+    assert (dir == 1 || dir == -1);
+    assert (row >= 0 && row < NUM_ROWS);
+    int prev_col = -1;
+    if (dir == 1) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            if (this->board[row][col] != 0) {
+                if (prev_col == -1 || this->board[row][col] != this->board[row][prev_col]) {
+                    prev_col = col;
+                } else {
+                    return true;
+                }
+            }
+        }
+    } else {
+        for (int col = NUM_COLS - 1; col > -1; col--) {
+            if (this->board[row][col] != 0) {
+                if (prev_col == -1 || this->board[row][col] != this->board[row][prev_col]) {
+                    prev_col = col;
+                } else {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
 
-bool State_2048::combine_cells_row(int row, int dir, bool dont_modify) {
+bool State_2048::can_combine_cells_col(int col, int dir) {
+    assert (dir == 1 || dir == -1);
+    assert (col >= 0 && col < NUM_COLS);
+    int prev_row = -1;
+    if (dir == 1) {
+        for (int row = 0; row < NUM_ROWS; row++) {
+            if (this->board[row][col] != 0) {
+                if (prev_row == -1 || this->board[row][col] != this->board[prev_row][col]) {
+                    prev_row = row;
+                } else {
+                    return true;
+                }
+            }
+        }
+    } else {
+        for (int row = NUM_ROWS - 1; row > -1; row--) {
+            if (this->board[row][col] != 0) {
+                if (prev_row == -1 || this->board[row][col] != this->board[prev_row][col]) {
+                    prev_row = row;
+                } else {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool State_2048::can_combine_cells(int drow, int dcol) {
+    assert (drow * dcol == 0 && drow + dcol != 0);
+    if (drow == 0) {
+        for (int row = 0; row < NUM_ROWS; row++) {
+            if (this->can_combine_cells_row(row, -dcol)) {return true;}
+        }
+    } else {
+        for (int col = 0; col < NUM_COLS; col++) {
+            if (this->can_combine_cells_col(col, -drow)) {return true;}
+        }
+    }
+    return false;
+}
+
+bool State_2048::can_cascade_row(int row, int dir) {
+    assert (dir == 1 || dir == -1);
+    if (dir == 1) {
+        int cur_col = 0;
+        for (int col = 0; col < NUM_COLS; col++) {
+            if (this->board[row][col] != 0) {
+                if (col != cur_col) {
+                    return true;
+                }
+                cur_col++;
+            }
+        }
+    } else {
+        int cur_col = NUM_COLS - 1;
+        for (int col = NUM_COLS - 1; col > -1; col--) {
+            if (this->board[row][col] != 0) {
+                if (col != cur_col) {
+                    return true;
+                }
+                cur_col--;
+            }
+        }
+    }
+    return false;
+}
+
+bool State_2048::can_cascade_col(int col, int dir) {
+    assert (dir == 1 || dir == -1);
+    if (dir == 1) {
+        int cur_row = 0;
+        for (int row = 0; row < NUM_ROWS; row++) {
+            if (this->board[row][col] != 0) {
+                if (row != cur_row) {
+                    return true;
+                }
+                cur_row++;
+            }
+        }
+    } else {
+        int cur_row = NUM_ROWS - 1;
+        for (int row = NUM_ROWS - 1; row > -1; row--) {
+            if (this->board[row][col] != 0) {
+                if (row != cur_row) {
+                    return true;
+                }
+                cur_row--;
+            }
+        }
+    }
+    return false;
+}
+
+bool State_2048::can_cascade(int drow, int dcol) {
+    assert (drow * dcol == 0 && drow + dcol != 0);
+    if (drow == 0) {
+        for (int row = 0; row < NUM_ROWS; row++) {
+            if (this->can_cascade_row(row, -dcol)) {return true;}
+        }
+    } else {
+        for (int col = 0; col < NUM_COLS; col++) {
+            if (this->can_cascade_col(col, -drow)) {return true;}
+        }
+    }
+    return false;
+}
+*/
+
+bool State_2048::can_make_move_up() {
+    for (int row = 1; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            int cur_value = this->board[row][col];
+            if (cur_value != 0) {
+                int neighbor_value = this->board[row - 1][col];
+                if (neighbor_value == 0 || cur_value == neighbor_value) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool State_2048::can_make_move_down() {
+    for (int row = NUM_ROWS - 2; row > -1; row--) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            int cur_value = this->board[row][col];
+            if (cur_value != 0) {
+                int neighbor_value = this->board[row + 1][col];
+                if (neighbor_value == 0 || cur_value == neighbor_value) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool State_2048::can_make_move_left() {
+    for (int col = 1; col < NUM_COLS; col++) {
+        for (int row = 0; row < NUM_ROWS; row++) {
+            int cur_value = this->board[row][col];
+            if (cur_value != 0) {
+                int neighbor_value = this->board[row][col - 1];
+                if (neighbor_value == 0 || cur_value == neighbor_value) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool State_2048::can_make_move_right() {
+    for (int col = NUM_COLS - 2; col > -1; col--) {
+        for (int row = 0; row < NUM_ROWS; row++) {
+            int cur_value = this->board[row][col];
+            if (cur_value != 0) {
+                int neighbor_value = this->board[row][col + 1];
+                if (neighbor_value == 0 || cur_value == neighbor_value) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool State_2048::can_make_move(Move_2048 move) {
+    switch (move) {
+        case Move_2048::UP: return this->can_make_move_up();
+        case Move_2048::DOWN: return this->can_make_move_down();
+        case Move_2048::LEFT: return this->can_make_move_left();
+        case Move_2048::RIGHT: return this->can_make_move_right();\
+        default:
+            assert (false);
+            return false;
+    }
+}
+
+bool State_2048::combine_cells_row(int row, int dir) {
     assert (dir == 1 || dir == -1);
     assert (row >= 0 && row < NUM_ROWS);
     int prev_col = -1;
@@ -70,7 +279,6 @@ bool State_2048::combine_cells_row(int row, int dir, bool dont_modify) {
                     prev_col = col;
                 } else {
                     //combine
-                    if (dont_modify) {return true;}
                     this->board[row][prev_col] *= 2;
                     this->board[row][col] = 0;
                     this->score += this->board[row][prev_col];
@@ -89,7 +297,6 @@ bool State_2048::combine_cells_row(int row, int dir, bool dont_modify) {
                     prev_col = col;
                 } else {
                     //combine
-                    if (dont_modify) {return true;}
                     this->board[row][prev_col] *= 2;
                     this->board[row][col] = 0;
                     this->score += this->board[row][prev_col];
@@ -103,7 +310,7 @@ bool State_2048::combine_cells_row(int row, int dir, bool dont_modify) {
     return something_happened;
 }
 
-bool State_2048::combine_cells_col(int col, int dir, bool dont_modify) {
+bool State_2048::combine_cells_col(int col, int dir) {
     assert (dir == 1 || dir == -1);
     assert (col >= 0 && col < NUM_COLS);
     int prev_row = -1;
@@ -117,7 +324,6 @@ bool State_2048::combine_cells_col(int col, int dir, bool dont_modify) {
                     prev_row = row;
                 } else {
                     //combine
-                    if (dont_modify) {return true;}
                     this->board[prev_row][col] *= 2;
                     this->board[row][col] = 0;
                     this->score += this->board[prev_row][col];
@@ -136,7 +342,6 @@ bool State_2048::combine_cells_col(int col, int dir, bool dont_modify) {
                     prev_row = row;
                 } else {
                     //combine
-                    if (dont_modify) {return true;}
                     this->board[prev_row][col] *= 2;
                     this->board[row][col] = 0;
                     this->score += this->board[prev_row][col];
@@ -150,26 +355,24 @@ bool State_2048::combine_cells_col(int col, int dir, bool dont_modify) {
     return something_happened;
 }
 
-bool State_2048::combine_cells(int drow, int dcol, bool dont_modify) {
+bool State_2048::combine_cells(int drow, int dcol) {
     assert (drow * dcol == 0 && drow + dcol != 0);
     bool something_happened = false;
     if (drow == 0) {
         for (int row = 0; row < NUM_ROWS; row++) {
-            bool something_combined = this->combine_cells_row(row, -dcol, dont_modify);
+            bool something_combined = this->combine_cells_row(row, -dcol);
             something_happened = something_happened || something_combined;
-            if (dont_modify && something_happened) {return something_happened;}
         }
     } else {
         for (int col = 0; col < NUM_COLS; col++) {
-            bool something_combined = this->combine_cells_col(col, -drow, dont_modify);
+            bool something_combined = this->combine_cells_col(col, -drow);
             something_happened = something_happened || something_combined;
-            if (dont_modify && something_happened) {return something_happened;}
         }
     }
     return something_happened;
 }
 
-bool State_2048::cascade_row(int row, int dir, bool dont_modify) {
+bool State_2048::cascade_row(int row, int dir) {
     assert (dir == 1 || dir == -1);
     bool something_happened = false;
     if (dir == 1) {
@@ -177,7 +380,6 @@ bool State_2048::cascade_row(int row, int dir, bool dont_modify) {
         for (int col = 0; col < NUM_COLS; col++) {
             if (this->board[row][col] != 0) {
                 if (col != cur_col) {
-                    if (dont_modify) {return true;}
                     this->board[row][cur_col] = this->board[row][col];
                     this->board[row][col] = 0;
                     something_happened = true;
@@ -190,7 +392,6 @@ bool State_2048::cascade_row(int row, int dir, bool dont_modify) {
         for (int col = NUM_COLS - 1; col > -1; col--) {
             if (this->board[row][col] != 0) {
                 if (col != cur_col) {
-                    if (dont_modify) {return true;}
                     this->board[row][cur_col] = this->board[row][col];
                     this->board[row][col] = 0;
                     something_happened = true;
@@ -202,7 +403,7 @@ bool State_2048::cascade_row(int row, int dir, bool dont_modify) {
     return something_happened;
 }
 
-bool State_2048::cascade_col(int col, int dir, bool dont_modify) {
+bool State_2048::cascade_col(int col, int dir) {
     assert (dir == 1 || dir == -1);
     bool something_happened = false;
     if (dir == 1) {
@@ -210,7 +411,6 @@ bool State_2048::cascade_col(int col, int dir, bool dont_modify) {
         for (int row = 0; row < NUM_ROWS; row++) {
             if (this->board[row][col] != 0) {
                 if (row != cur_row) {
-                    if (dont_modify) {return true;}
                     this->board[cur_row][col] = this->board[row][col];
                     this->board[row][col] = 0;
                     something_happened = true;
@@ -223,7 +423,6 @@ bool State_2048::cascade_col(int col, int dir, bool dont_modify) {
         for (int row = NUM_ROWS - 1; row > -1; row--) {
             if (this->board[row][col] != 0) {
                 if (row != cur_row) {
-                    if (dont_modify) {return true;}
                     this->board[cur_row][col] = this->board[row][col];
                     this->board[row][col] = 0;
                     something_happened = true;
@@ -235,35 +434,29 @@ bool State_2048::cascade_col(int col, int dir, bool dont_modify) {
     return something_happened;
 }
 
-bool State_2048::cascade(int drow, int dcol, bool dont_modify) {
+bool State_2048::cascade(int drow, int dcol) {
     assert (drow * dcol == 0 && drow + dcol != 0);
     bool something_happened = false;
     if (drow == 0) {
         for (int row = 0; row < NUM_ROWS; row++) {
-            bool something_cascaded = this->cascade_row(row, -dcol, dont_modify);
+            bool something_cascaded = this->cascade_row(row, -dcol);
             something_happened = something_happened || something_cascaded;
-            if (dont_modify && something_happened) {return something_happened;}
         }
     } else {
         for (int col = 0; col < NUM_COLS; col++) {
-            bool something_cascaded = this->cascade_col(col, -drow, dont_modify);
+            bool something_cascaded = this->cascade_col(col, -drow);
             something_happened = something_happened || something_cascaded;
-            if (dont_modify && something_happened) {return something_happened;}
         }
     }
     return something_happened;
 }
 
-bool State_2048::try_make_move(Move_2048 move, bool dont_modify) {
+bool State_2048::try_make_move(Move_2048 move) {
     int drow, dcol;
     convert_move_to_drow_dcol(move, drow, dcol);
-    if (dont_modify) {
-        return this->cascade(drow, dcol, dont_modify) || this->combine_cells(drow, dcol, dont_modify);
-    } else {
-        bool combine_happened = this->combine_cells(drow, dcol, dont_modify);
-        bool cascade_happened = this->cascade(drow, dcol, dont_modify);
-        return combine_happened || cascade_happened;
-    }
+    bool combine_happened = this->combine_cells(drow, dcol);
+    bool cascade_happened = this->cascade(drow, dcol);
+    return combine_happened || cascade_happened;
 }
 
 State_2048::~State_2048() {
@@ -319,7 +512,7 @@ int State_2048::get_legal_moves(Move_2048* legal_moves) {
     int num_legal_moves = 0;
     for (int i = 0; i < NUM_MOVES; i++) {
         Move_2048 cur_move = ALL_MOVES[i];
-        if (this->try_make_move(cur_move, true)) {
+        if (this->can_make_move(cur_move)) {
             legal_moves[num_legal_moves] = cur_move;
             num_legal_moves++;
         }
@@ -334,7 +527,7 @@ State_2048 State_2048::make_move(Move_2048 move) {
         new_state.copy_state_from_other_cache(this, move_i);
     } else {
         new_state.copy_state(this);
-        bool something_happened = new_state.try_make_move(move, false);
+        bool something_happened = new_state.try_make_move(move);
         assert (something_happened);
         this->copy_state_to_cache(&new_state, move_i);
         this->cached_board_after_move_flags[move_i] = true;

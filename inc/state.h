@@ -29,14 +29,19 @@ private:
     void copy_state_to_cache(State_2048* other_state, int move_i);
     void copy_state_from_other_cache(State_2048* other_state, int move_i);
 
-    bool combine_cells_row(int row, int dir, bool dont_modify);
-    bool combine_cells_col(int col, int dir, bool dont_modify);
-    bool combine_cells(int drow, int dcol, bool dont_modify);
-    bool cascade_row(int row, int dir, bool dont_modify);
-    bool cascade_col(int col, int dir, bool dont_modify);
-    bool cascade(int drow, int dcol, bool dont_modify);
-    bool try_make_move(Move_2048 move, bool dont_modify);
+    bool can_make_move_up();
+    bool can_make_move_down();
+    bool can_make_move_left();
+    bool can_make_move_right();
+    bool can_make_move(Move_2048 move);
+    bool combine_cells_row(int row, int dir);
+    bool combine_cells_col(int col, int dir);
+    bool combine_cells(int drow, int dcol);
+    bool cascade_row(int row, int dir);
+    bool cascade_col(int col, int dir);
+    bool cascade(int drow, int dcol);
 
+    bool try_make_move(Move_2048 move);
     bool is_legal_move(Move_2048 move);
 
 public:
