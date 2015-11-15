@@ -29,11 +29,8 @@ private:
     void copy_state_to_cache(State_2048* other_state, int move_i);
     void copy_state_from_other_cache(State_2048* other_state, int move_i);
 
-    bool can_make_move_up();
-    bool can_make_move_down();
-    bool can_make_move_left();
-    bool can_make_move_right();
-    bool can_make_move(Move_2048 move);
+    int get_legal_moves_internal(Move_2048* legal_moves);
+
     bool combine_cells_row(int row, int dir);
     bool combine_cells_col(int col, int dir);
     bool combine_cells(int drow, int dcol);

@@ -55,214 +55,75 @@ void State_2048::copy_state_from_other_cache(State_2048* other_state, int move_i
     this->score = other_state->cached_score_after_move[move_i];
     this->num_empty_cells = other_state->cached_num_empty_cells_after_move[move_i];
 }
-/*
-bool State_2048::can_combine_cells_row(int row, int dir) {
-    assert (dir == 1 || dir == -1);
-    assert (row >= 0 && row < NUM_ROWS);
-    int prev_col = -1;
-    if (dir == 1) {
-        for (int col = 0; col < NUM_COLS; col++) {
-            if (this->board[row][col] != 0) {
-                if (prev_col == -1 || this->board[row][col] != this->board[row][prev_col]) {
-                    prev_col = col;
-                } else {
-                    return true;
-                }
-            }
-        }
-    } else {
-        for (int col = NUM_COLS - 1; col > -1; col--) {
-            if (this->board[row][col] != 0) {
-                if (prev_col == -1 || this->board[row][col] != this->board[row][prev_col]) {
-                    prev_col = col;
-                } else {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
 
-bool State_2048::can_combine_cells_col(int col, int dir) {
-    assert (dir == 1 || dir == -1);
-    assert (col >= 0 && col < NUM_COLS);
-    int prev_row = -1;
-    if (dir == 1) {
-        for (int row = 0; row < NUM_ROWS; row++) {
-            if (this->board[row][col] != 0) {
-                if (prev_row == -1 || this->board[row][col] != this->board[prev_row][col]) {
-                    prev_row = row;
-                } else {
-                    return true;
-                }
-            }
-        }
-    } else {
-        for (int row = NUM_ROWS - 1; row > -1; row--) {
-            if (this->board[row][col] != 0) {
-                if (prev_row == -1 || this->board[row][col] != this->board[prev_row][col]) {
-                    prev_row = row;
-                } else {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-
-bool State_2048::can_combine_cells(int drow, int dcol) {
-    assert (drow * dcol == 0 && drow + dcol != 0);
-    if (drow == 0) {
-        for (int row = 0; row < NUM_ROWS; row++) {
-            if (this->can_combine_cells_row(row, -dcol)) {return true;}
-        }
-    } else {
-        for (int col = 0; col < NUM_COLS; col++) {
-            if (this->can_combine_cells_col(col, -drow)) {return true;}
-        }
-    }
-    return false;
-}
-
-bool State_2048::can_cascade_row(int row, int dir) {
-    assert (dir == 1 || dir == -1);
-    if (dir == 1) {
-        int cur_col = 0;
-        for (int col = 0; col < NUM_COLS; col++) {
-            if (this->board[row][col] != 0) {
-                if (col != cur_col) {
-                    return true;
-                }
-                cur_col++;
-            }
-        }
-    } else {
-        int cur_col = NUM_COLS - 1;
-        for (int col = NUM_COLS - 1; col > -1; col--) {
-            if (this->board[row][col] != 0) {
-                if (col != cur_col) {
-                    return true;
-                }
-                cur_col--;
-            }
-        }
-    }
-    return false;
-}
-
-bool State_2048::can_cascade_col(int col, int dir) {
-    assert (dir == 1 || dir == -1);
-    if (dir == 1) {
-        int cur_row = 0;
-        for (int row = 0; row < NUM_ROWS; row++) {
-            if (this->board[row][col] != 0) {
-                if (row != cur_row) {
-                    return true;
-                }
-                cur_row++;
-            }
-        }
-    } else {
-        int cur_row = NUM_ROWS - 1;
-        for (int row = NUM_ROWS - 1; row > -1; row--) {
-            if (this->board[row][col] != 0) {
-                if (row != cur_row) {
-                    return true;
-                }
-                cur_row--;
-            }
-        }
-    }
-    return false;
-}
-
-bool State_2048::can_cascade(int drow, int dcol) {
-    assert (drow * dcol == 0 && drow + dcol != 0);
-    if (drow == 0) {
-        for (int row = 0; row < NUM_ROWS; row++) {
-            if (this->can_cascade_row(row, -dcol)) {return true;}
-        }
-    } else {
-        for (int col = 0; col < NUM_COLS; col++) {
-            if (this->can_cascade_col(col, -drow)) {return true;}
-        }
-    }
-    return false;
-}
-*/
-
-bool State_2048::can_make_move_up() {
-    for (int row = 1; row < NUM_ROWS; row++) {
+int State_2048::get_legal_moves_internal(Move_2048* legal_moves) {
+    bool can_make_move_up = false;
+    bool can_make_move_down = false;
+    bool can_make_move_left = false;
+    bool can_make_move_right = false;
+    for (int row  = 0; row < NUM_ROWS; row++) {
         for (int col = 0; col < NUM_COLS; col++) {
             int cur_value = this->board[row][col];
             if (cur_value != 0) {
-                int neighbor_value = this->board[row - 1][col];
-                if (neighbor_value == 0 || cur_value == neighbor_value) {
-                    return true;
+                if (!can_make_move_up && row != 0) {
+                    int neighbor_value = this->board[row - 1][col];
+                    if (neighbor_value == 0 || cur_value == neighbor_value) {
+                        can_make_move_up = true;
+                        if (can_make_move_up && can_make_move_down && can_make_move_left && can_make_move_right) {
+                            goto GET_LEGAL_MOVES_INTERNAL_POST_LOOP;
+                        }
+                    }
+                }
+                if (!can_make_move_down && row != NUM_ROWS - 1) {
+                    int neighbor_value = this->board[row + 1][col];
+                    if (neighbor_value == 0 || cur_value == neighbor_value) {
+                        can_make_move_down = true;
+                        if (can_make_move_up && can_make_move_down && can_make_move_left && can_make_move_right) {
+                            goto GET_LEGAL_MOVES_INTERNAL_POST_LOOP;
+                        }
+                    }
+                }
+                if (!can_make_move_left && col != 0) {
+                    int neighbor_value = this->board[row][col - 1];
+                    if (neighbor_value == 0 || cur_value == neighbor_value) {
+                        can_make_move_left = true;
+                        if (can_make_move_up && can_make_move_down && can_make_move_left && can_make_move_right) {
+                            goto GET_LEGAL_MOVES_INTERNAL_POST_LOOP;
+                        }
+                    }
+                }
+                if (!can_make_move_right && col != NUM_COLS - 1) {
+                    int neighbor_value = this->board[row][col + 1];
+                    if (neighbor_value == 0 || cur_value == neighbor_value) {
+                        can_make_move_right = true;
+                        if (can_make_move_up && can_make_move_down && can_make_move_left && can_make_move_right) {
+                            goto GET_LEGAL_MOVES_INTERNAL_POST_LOOP;
+                        }
+                    }
                 }
             }
         }
     }
-    return false;
-}
 
-bool State_2048::can_make_move_down() {
-    for (int row = NUM_ROWS - 2; row > -1; row--) {
-        for (int col = 0; col < NUM_COLS; col++) {
-            int cur_value = this->board[row][col];
-            if (cur_value != 0) {
-                int neighbor_value = this->board[row + 1][col];
-                if (neighbor_value == 0 || cur_value == neighbor_value) {
-                    return true;
-                }
-            }
-        }
+GET_LEGAL_MOVES_INTERNAL_POST_LOOP:
+    int num_legal_moves = 0;
+    if (can_make_move_up) {
+        legal_moves[num_legal_moves] = Move_2048::UP;
+        num_legal_moves++;
     }
-    return false;
-}
-
-bool State_2048::can_make_move_left() {
-    for (int col = 1; col < NUM_COLS; col++) {
-        for (int row = 0; row < NUM_ROWS; row++) {
-            int cur_value = this->board[row][col];
-            if (cur_value != 0) {
-                int neighbor_value = this->board[row][col - 1];
-                if (neighbor_value == 0 || cur_value == neighbor_value) {
-                    return true;
-                }
-            }
-        }
+    if (can_make_move_down) {
+        legal_moves[num_legal_moves] = Move_2048::DOWN;
+        num_legal_moves++;
     }
-    return false;
-}
-
-bool State_2048::can_make_move_right() {
-    for (int col = NUM_COLS - 2; col > -1; col--) {
-        for (int row = 0; row < NUM_ROWS; row++) {
-            int cur_value = this->board[row][col];
-            if (cur_value != 0) {
-                int neighbor_value = this->board[row][col + 1];
-                if (neighbor_value == 0 || cur_value == neighbor_value) {
-                    return true;
-                }
-            }
-        }
+    if (can_make_move_left) {
+        legal_moves[num_legal_moves] = Move_2048::LEFT;
+        num_legal_moves++;
     }
-    return false;
-}
-
-bool State_2048::can_make_move(Move_2048 move) {
-    switch (move) {
-        case Move_2048::UP: return this->can_make_move_up();
-        case Move_2048::DOWN: return this->can_make_move_down();
-        case Move_2048::LEFT: return this->can_make_move_left();
-        case Move_2048::RIGHT: return this->can_make_move_right();\
-        default:
-            assert (false);
-            return false;
+    if (can_make_move_right) {
+        legal_moves[num_legal_moves] = Move_2048::RIGHT;
+        num_legal_moves++;
     }
+    return num_legal_moves;
 }
 
 bool State_2048::combine_cells_row(int row, int dir) {
@@ -509,15 +370,7 @@ int State_2048::get_score() {
 }
 
 int State_2048::get_legal_moves(Move_2048* legal_moves) {
-    int num_legal_moves = 0;
-    for (int i = 0; i < NUM_MOVES; i++) {
-        Move_2048 cur_move = ALL_MOVES[i];
-        if (this->can_make_move(cur_move)) {
-            legal_moves[num_legal_moves] = cur_move;
-            num_legal_moves++;
-        }
-    }
-    return num_legal_moves;
+    return this->get_legal_moves_internal(legal_moves);
 }
 
 State_2048 State_2048::make_move(Move_2048 move) {
