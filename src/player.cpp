@@ -275,3 +275,144 @@ int Friedrich_Player_2048::get_heuristic_values(State_2048 &state, Move_2048 mov
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+double Full_Single_Level_Heuristic_Player_2048::get_expected_heuristic_value_after_random(State_2048 &state, Move_2048 move) {
+    int num_empty_cells = state.get_num_empty_cells();
+    Random_Policy* random_policy = state.get_random_policy();
+    vector<int> values = random_policy->get_values();
+    vector<double> normalized_weights = random_policy->get_normalized_weights();
+    double total_heuristic_value = 0.0;
+
+    for (int row = 0; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            if (state.get_cell_value(row, col) == 0) {
+                for (vector<int>::size_type i = 0; i < values.size(); i++) {
+                    int value = values[i];
+                    double weight = normalized_weights[i] / num_empty_cells;
+                    State_2048 new_state = state.make_state_after_adding_random_cell(row, col, value);
+                    double new_state_heuristic_value = this->get_heuristic_value(new_state, move);
+                    total_heuristic_value += new_state_heuristic_value * weight;
+                }
+            }
+        }
+    }
+
+    return total_heuristic_value;
+}
+
+Full_Single_Level_Heuristic_Player_2048::Full_Single_Level_Heuristic_Player_2048() {
+    //nothing right now...
+}
+
+Full_Single_Level_Heuristic_Player_2048::~Full_Single_Level_Heuristic_Player_2048() {
+    //nothing right now...
+}
+
+void Full_Single_Level_Heuristic_Player_2048::init() {
+    //nothing right now...
+}
+
+int Full_Single_Level_Heuristic_Player_2048::get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves) {
+    int max_move_i = -1;
+    double max_heuristic_value = 0.0;
+    for (int i = 0; i < num_legal_moves; i++) {
+        Move_2048 cur_move = legal_moves[i];
+        State_2048 state_after_move = state.make_move(cur_move);
+        double cur_heuristic_value = this->get_expected_heuristic_value_after_random(state_after_move, cur_move);
+        if (max_move_i == -1 || cur_heuristic_value > max_heuristic_value) {
+            max_move_i = i;
+            max_heuristic_value = cur_heuristic_value;
+        }
+    }
+    return max_move_i;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+int Rodney_Player_2048::move_to_preference(Move_2048 move) {
+    switch (move) {
+        case Move_2048::UP: return 1;
+        case Move_2048::DOWN: return 3;
+        case Move_2048::LEFT: return 4;
+        case Move_2048::RIGHT: return 2;
+        default:
+            assert (false);
+            return 0;
+    }
+}
+
+Rodney_Player_2048::Rodney_Player_2048() {
+    //nothing right now...
+}
+
+Rodney_Player_2048::~Rodney_Player_2048() {
+    //nothing right now...
+}
+
+double Rodney_Player_2048::get_heuristic_value(State_2048 &state, Move_2048 move) {
+    return state.get_score() + this->move_to_preference(move) / 4.0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+double Silvia_Player_2048::get_neighbor_discomfort(int value_a, int value_b) {
+    assert (value_a > 0);
+    
+    if (value_b == 0) {
+        return value_a / 2.0;
+    } else {
+        int index_a = cell_value_to_i(value_a);
+        int index_b = cell_value_to_i(value_b);
+        return std::abs(index_a - index_b);
+    }
+}
+double Silvia_Player_2048::get_location_discomfort(int row, int col, int value) {
+    return ((col * NUM_ROWS) + (NUM_ROWS - row - 1)) * value;
+}
+
+Silvia_Player_2048::Silvia_Player_2048() {
+    //nothing right now...
+}
+
+Silvia_Player_2048::~Silvia_Player_2048() {
+    //nothing right now...
+}
+
+double Silvia_Player_2048::get_heuristic_value(State_2048 &state, Move_2048) {
+    double total_location_discomfort = 0.0;
+    double total_neighbor_discomfort = 0.0;
+
+    for (int row = 0; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            int cur_value = state.get_cell_value(row, col);
+            if (cur_value != 0) {
+                total_location_discomfort += this->get_location_discomfort(row, col, cur_value);
+                for (int drow = -1; drow < 2; drow++) {
+                    for (int dcol = -1; dcol < 2; dcol++) {
+                        if (drow != dcol && drow * dcol == 0) {
+                            int neighbor_row = row + drow;
+                            int neighbor_col = col + dcol;
+                            if (neighbor_row >= 0 && neighbor_row < NUM_ROWS &&
+                                neighbor_col >= 0 && neighbor_col < NUM_COLS) {
+                                int neighbor_value = state.get_cell_value(neighbor_row, neighbor_col);
+                                total_neighbor_discomfort += this->get_neighbor_discomfort(cur_value, neighbor_value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    double total_discomfort = total_location_discomfort * 1.0 + total_neighbor_discomfort * 1.0;
+    double weighted_num_empty_cells = state.get_num_empty_cells() * 128.0;
+    return -total_discomfort + weighted_num_empty_cells;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////

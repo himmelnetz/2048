@@ -373,6 +373,14 @@ int State_2048::get_legal_moves(Move_2048* legal_moves) {
     return this->get_legal_moves_internal(legal_moves);
 }
 
+int State_2048::get_num_empty_cells() {
+    return this->num_empty_cells;
+}
+
+Random_Policy* State_2048::get_random_policy() {
+    return this->random_policy;
+}
+
 State_2048 State_2048::make_move(Move_2048 move) {
     State_2048 new_state(this->random_policy);
     int move_i = move_to_i(move);
@@ -385,6 +393,15 @@ State_2048 State_2048::make_move(Move_2048 move) {
         this->copy_state_to_cache(&new_state, move_i);
         this->cached_board_after_move_flags[move_i] = true;
     }
+    return new_state;
+}
+
+State_2048 State_2048::make_state_after_adding_random_cell(int row, int col, int value) {
+    assert (row >= 0 && row < NUM_ROWS && col >= 0 && col < NUM_COLS);
+    //TODO assert value is power of 2?
+    State_2048 new_state(this->random_policy);
+    new_state.copy_state(this);
+    new_state.board[row][col] = value;
     return new_state;
 }
 

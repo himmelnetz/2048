@@ -52,8 +52,11 @@ public:
     int get_cell_value(int row, int col);
     int get_score();
     int get_legal_moves(Move_2048* legal_moves); //legal moves must be big enough to hold everything
+    int get_num_empty_cells();
+    Random_Policy* get_random_policy();
 
     State_2048 make_move(Move_2048 move);
+    State_2048 make_state_after_adding_random_cell(int row, int col, int value);
 
 };
 

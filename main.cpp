@@ -18,6 +18,10 @@ Player_2048* get_player_from_player_name(string player_name) {
         return new Rod_Player_2048();
     } else if (player_name == "friedrich") {
         return new Friedrich_Player_2048();
+    } else if (player_name == "rodney") {
+        return new Rodney_Player_2048();
+    } else if (player_name == "silvia") {
+        return new Silvia_Player_2048();
     } else {
         return NULL;
     }
@@ -77,7 +81,7 @@ int main(int argc, char *argv[]) {
     Player_2048* player = get_player_from_player_name(player_name);
     if (player == NULL) {
         std::cout << "invalid player name: " << player_name << std::endl;
-        std::cout << "valid player names are: zed, bertha, rod, friedrich" << std::endl;
+        std::cout << "valid player names are: zed, bertha, rod, friedrich, rodney, sylvia" << std::endl;
         return -1;
     }
     int return_status;

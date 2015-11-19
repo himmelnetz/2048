@@ -23,6 +23,10 @@ public:
     Random_Policy(int n, int* values_in, int* weights_in, int random_seed);
     ~Random_Policy();
 
+    vector<int> get_values();
+    vector<int> get_weights();
+    vector<double> get_normalized_weights();
+
     void get_random_position_and_value(int num_position, int &position_to_use, int &value);
 
 };
