@@ -55,7 +55,7 @@ Move_2048 i_to_move(int i) {
 }
 
 //assumes base 2
-int cell_value_to_i(int cell_value) {
+int cell_value_to_i_general(int cell_value) {
     assert (cell_value > 0);
     int i = 0;
     while (cell_value != 2) {
@@ -64,6 +64,25 @@ int cell_value_to_i(int cell_value) {
         i++;
     }
     return i;
+}
+
+int cell_value_to_i(int cell_value) {
+    assert (cell_value > 0);
+    switch (cell_value) {
+        case 2: return 0;
+        case 4: return 1;
+        case 8: return 2;
+        case 16: return 3;
+        case 32: return 4;
+        case 64: return 5;
+        case 128: return 6;
+        case 256: return 7;
+        case 512: return 8;
+        case 1024: return 9;
+        case 2048: return 10;
+        case 4098: return 11;
+        default: return cell_value_to_i_general(cell_value);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

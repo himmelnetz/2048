@@ -183,7 +183,31 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-class Silvia_Player_2048 : public Full_Single_Level_Heuristic_Player_2048 {
+static const int MANY_LEVEL_HEURISTIC_PLAYER_SEARCH_DEPTH = 3;
+
+class Many_Level_Heuristic_Player_2048 : public Player_2048 {
+
+private:
+
+    double get_expected_heuristic_value_after_random(State_2048 &state, int depth);
+    double get_heuristic_value_after_move(State_2048 &state, int depth);
+
+public:
+
+    Many_Level_Heuristic_Player_2048();
+    virtual ~Many_Level_Heuristic_Player_2048();
+
+    virtual void init();
+    virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+
+    virtual double get_heuristic_value(State_2048 &state) = 0;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+class Silvia_Player_2048 : public Many_Level_Heuristic_Player_2048 {
 
 private:
 
@@ -195,7 +219,7 @@ public:
     Silvia_Player_2048();
     virtual ~Silvia_Player_2048();
 
-    virtual double get_heuristic_value(State_2048 &state, Move_2048 move);
+    virtual double get_heuristic_value(State_2048 &state);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
