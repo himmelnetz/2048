@@ -436,21 +436,18 @@ int Many_Level_Heuristic_Player_2048::get_move(State_2048 &state, int num_legal_
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-double Silvia_Player_2048::get_neighbor_discomfort(int value_a, int value_b) {
-    assert (value_a > 0);
-    
-    int index_a = cell_value_to_i(value_a);
-    int index_b = value_b > 0 ? cell_value_to_i(value_b) : -1;
-    if (value_b == 0) {
+double Silvia_Player_2048::get_neighbor_discomfort(int index_a, int index_b) {
+    if (index_b == -1) {
         return index_a;
-    } else if (value_a == value_b) {
+    } else if (index_a == index_b) {
         return index_a * 0.75;
     } else {
         return std::abs(index_a - index_b);
     }
 }
-double Silvia_Player_2048::get_location_discomfort(int row, int col, int value) {
-    return ((col * NUM_ROWS) + (NUM_ROWS - row - 1)) * cell_value_to_i(value);
+
+double Silvia_Player_2048::get_location_discomfort(int row, int col, int value_index) {
+    return ((col * NUM_ROWS) + (NUM_ROWS - row - 1)) * value_index;
 }
 
 Silvia_Player_2048::Silvia_Player_2048() {
@@ -462,14 +459,24 @@ Silvia_Player_2048::~Silvia_Player_2048() {
 }
 
 double Silvia_Player_2048::get_heuristic_value(State_2048 &state) {
+    int index_board[NUM_ROWS][NUM_COLS];
+    for (int row = 0; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            int value = state.get_cell_value(row, col);
+            index_board[row][col] = value != 0
+                ? cell_value_to_i(value)
+                : -1;
+        }
+    }
+
     double total_location_discomfort = 0.0;
     double total_neighbor_discomfort = 0.0;
 
     for (int row = 0; row < NUM_ROWS; row++) {
         for (int col = 0; col < NUM_COLS; col++) {
-            int cur_value = state.get_cell_value(row, col);
-            if (cur_value != 0) {
-                total_location_discomfort += this->get_location_discomfort(row, col, cur_value);
+            int cur_value_index = index_board[row][col];
+            if (cur_value_index != -1) {
+                total_location_discomfort += this->get_location_discomfort(row, col, cur_value_index);
                 for (int drow = -1; drow < 2; drow++) {
                     for (int dcol = -1; dcol < 2; dcol++) {
                         if (drow != dcol && drow * dcol == 0) {
@@ -477,8 +484,8 @@ double Silvia_Player_2048::get_heuristic_value(State_2048 &state) {
                             int neighbor_col = col + dcol;
                             if (neighbor_row >= 0 && neighbor_row < NUM_ROWS &&
                                 neighbor_col >= 0 && neighbor_col < NUM_COLS) {
-                                int neighbor_value = state.get_cell_value(neighbor_row, neighbor_col);
-                                total_neighbor_discomfort += this->get_neighbor_discomfort(cur_value, neighbor_value);
+                                int neighbor_value_index = index_board[neighbor_row][neighbor_col];
+                                total_neighbor_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
                             }
                         }
                     }
