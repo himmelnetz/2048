@@ -446,6 +446,33 @@ double Silvia_Player_2048::get_neighbor_discomfort(int index_a, int index_b) {
     }
 }
 
+double Silvia_Player_2048::get_neighbor_discomfort_for_cell(int index_board[NUM_ROWS][NUM_COLS], int row, int col, int cur_value_index) {
+    double total_discomfort = 0.0;
+
+    //up
+    if (row > 0) {
+        int neighbor_value_index = index_board[row - 1][col];
+        total_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
+    }
+    //down
+    if (row < NUM_ROWS - 1) {
+        int neighbor_value_index = index_board[row + 1][col];
+        total_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
+    }
+    //left
+    if (col > 0) {
+        int neighbor_value_index = index_board[row][col - 1];
+        total_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
+    }
+    //right
+    if (col < NUM_COLS - 1) {
+        int neighbor_value_index = index_board[row][col + 1];
+        total_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
+    }
+
+    return total_discomfort;
+}
+
 double Silvia_Player_2048::get_location_discomfort(int row, int col, int value_index) {
     return ((col * NUM_ROWS) + (NUM_ROWS - row - 1)) * value_index;
 }
@@ -477,19 +504,7 @@ double Silvia_Player_2048::get_heuristic_value(State_2048 &state) {
             int cur_value_index = index_board[row][col];
             if (cur_value_index != -1) {
                 total_location_discomfort += this->get_location_discomfort(row, col, cur_value_index);
-                for (int drow = -1; drow < 2; drow++) {
-                    for (int dcol = -1; dcol < 2; dcol++) {
-                        if (drow != dcol && drow * dcol == 0) {
-                            int neighbor_row = row + drow;
-                            int neighbor_col = col + dcol;
-                            if (neighbor_row >= 0 && neighbor_row < NUM_ROWS &&
-                                neighbor_col >= 0 && neighbor_col < NUM_COLS) {
-                                int neighbor_value_index = index_board[neighbor_row][neighbor_col];
-                                total_neighbor_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
-                            }
-                        }
-                    }
-                }
+                total_neighbor_discomfort += this->get_neighbor_discomfort_for_cell(index_board, row, col, cur_value_index);
             }
         }
     }

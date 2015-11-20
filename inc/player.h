@@ -212,6 +212,7 @@ class Silvia_Player_2048 : public Many_Level_Heuristic_Player_2048 {
 private:
 
     double get_neighbor_discomfort(int value_a, int value_b);
+    double get_neighbor_discomfort_for_cell(int index_board[NUM_ROWS][NUM_COLS], int row, int col, int cur_value_index);
     double get_location_discomfort(int row, int col, int value);
 
 public:
