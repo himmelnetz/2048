@@ -509,8 +509,8 @@ double Silvia_Player_2048::get_heuristic_value(State_2048 &state) {
         }
     }
     
-    double total_discomfort = total_location_discomfort * 8.0 + total_neighbor_discomfort * 2.0;
-    double weighted_num_empty_cells = state.get_num_empty_cells() * 256.0;
+    double total_discomfort = total_location_discomfort * 4.0 + total_neighbor_discomfort * 2.0;
+    double weighted_num_empty_cells = state.get_num_empty_cells() * 128.0;
     return -total_discomfort + weighted_num_empty_cells;
 }
 

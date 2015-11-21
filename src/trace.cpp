@@ -148,6 +148,15 @@ void Player_Statistics_Trace_2048::end_trace() {
     this->num_moves_per_game_statistics.add_datum(total_num_moves);
 }
 
+void Player_Statistics_Trace_2048::merge(Player_Statistics_Trace_2048* other_trace) {
+    this->score_statistics.merge(&(other_trace->score_statistics));
+    this->thinking_time_statistics.merge(&(other_trace->thinking_time_statistics));
+    this->num_moves_per_game_statistics.merge(&(other_trace->num_moves_per_game_statistics));
+    for (int i = 0; i < NUM_MOVES; i++) {
+        this->move_statistics[i].merge(&(other_trace->move_statistics[i]));
+    }
+}
+
 Summary_Statistics Player_Statistics_Trace_2048::get_score_statistics() {
     return this->score_statistics;
 }

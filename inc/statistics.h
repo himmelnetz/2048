@@ -25,6 +25,8 @@ public:
 	void add_data(double* data, int n);
 	void add_data(vector<double> data);
 
+	void merge(Summary_Statistics* other_stats);
+
 	int get_n();
 	double get_mean();
 	double get_stdev();

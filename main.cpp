@@ -7,6 +7,9 @@
 
 #include <iostream>
 #include <boost/algorithm/string.hpp>
+#include <pthread.h>
+
+static const int NUM_THREADS = 8;
 
 Player_2048* get_player_from_player_name(string player_name) {
     boost::to_lower(player_name);
@@ -36,6 +39,14 @@ Random_Policy make_standard_random_policy() {
     return random_policy;
 }
 
+Random_Policy* make_new_standard_random_policy() {
+    int num_values = 2;
+    int values[2] = {2, 4};
+    int weights[2] = {5, 1};
+    int random_seed = (int) time(0);
+    return new Random_Policy(num_values, values, weights, random_seed);
+}
+
 void generate_trace_files_for_player(Player_2048* player, string filename, int count = 1) {
     assert (count > 0 && count < 50); //a reasonable cutoff to prevent generating too many files
     Random_Policy random_policy = make_standard_random_policy();
@@ -49,15 +60,72 @@ void generate_trace_files_for_player(Player_2048* player, string filename, int c
     }
 }
 
-void generate_statistics_for_player(Player_2048* player, int num_games) {
+typedef struct {
+    int thread_num;
+    Player_2048* player;
+    Player_Statistics_Trace_2048* trace;
+    Random_Policy* random_policy;
+    int num_games;
+} statistics_worker_args;
+
+void* generate_statistics_worker(void* void_arg) {
+    statistics_worker_args* args = (statistics_worker_args*) void_arg;
+
+    Player_2048* player = args->player;
+    Trace_2048* trace = args->trace;
+    Random_Policy* random_policy = args->random_policy;
+    int num_games = args->num_games;
+
+    for (int i = 0; i < num_games; i++) {
+        //std::cout << "on game " << i + 1 << " for thread " << args->thread_num << std::endl;
+        Game_2048 game(player, trace, random_policy);
+        game.play_game();
+    }
+
+    pthread_exit(NULL);
+}
+
+void generate_statistics_for_player_threads(Player_2048* player, int num_games) {
     assert (num_games > 0);
+    /*
     Random_Policy random_policy = make_standard_random_policy();
     Player_Statistics_Trace_2048 statistics_trace;
     for (int i = 0; i < num_games; i++) {
+        std::cout << "on game " << i + 1 << std::endl;
         Game_2048 game(player, (Trace_2048*) &statistics_trace, &random_policy);
         game.play_game();
     }
     statistics_trace.get_score_statistics().print_statistics();
+    statistics_trace.get_thinking_time_statistics().print_statistics();
+    */
+    /**/
+    int num_games_per_thread = (num_games + NUM_THREADS - 1) / NUM_THREADS;
+
+    pthread_t pthreads[NUM_THREADS];
+    statistics_worker_args args[NUM_THREADS];
+    for (int i = 0; i < NUM_THREADS; i++) {
+        statistics_worker_args* cur_args = &(args[i]);
+        cur_args->thread_num = i;
+        cur_args->player = player;
+        cur_args->trace = new Player_Statistics_Trace_2048();
+        cur_args->random_policy = make_new_standard_random_policy();
+        cur_args->num_games = num_games_per_thread;
+        int ret = pthread_create(&(pthreads[i]), NULL, &generate_statistics_worker, (void*) cur_args);
+        assert (ret == 0);
+    }
+
+    Player_Statistics_Trace_2048 all_statistics;
+
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_join(pthreads[i], NULL);
+        all_statistics.merge(args[i].trace);
+        delete args[i].trace;
+        delete args[i].random_policy;
+    }
+
+    all_statistics.get_score_statistics().print_statistics();
+    all_statistics.get_thinking_time_statistics().print_statistics();
+    /**/
 }
 
 string make_generated_filename(string player_name) {
@@ -91,7 +159,7 @@ int main(int argc, char *argv[]) {
         generate_trace_files_for_player(player, filename, n);
         return_status = 0;
     } else if (mode == "stats") {
-        generate_statistics_for_player(player, n);
+        generate_statistics_for_player_threads(player, n);
         return_status = 0;
     } else {
         std::cout << "invalid mode: " << mode << std::endl;

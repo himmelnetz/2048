@@ -33,6 +33,10 @@ void Summary_Statistics::add_data(vector<double> data) {
     }
 }
 
+void Summary_Statistics::merge(Summary_Statistics* other_stats) {
+    this->add_data(other_stats->data);
+}
+
 int Summary_Statistics::get_n() {
     return this->data.size();
 }

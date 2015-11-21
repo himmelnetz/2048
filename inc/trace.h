@@ -92,6 +92,8 @@ public:
     virtual void on_new_state(State_2048 &state);
     virtual void end_trace();
 
+    void merge(Player_Statistics_Trace_2048* other_trace);
+
     Summary_Statistics get_score_statistics();
     Summary_Statistics get_thinking_time_statistics();
     Summary_Statistics get_num_moves_per_game_statistics();

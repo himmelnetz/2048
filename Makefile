@@ -1,6 +1,6 @@
 CC = g++
 IDIR = inc
-CFLAGS = -pg -I $(IDIR) -Wall -Wextra -lm -g -O2 -std=c++11
+CFLAGS = -I $(IDIR) -Wall -Wextra -lm -g -O2 -lpthread -std=c++11
 
 _DEPS = 2048.h util.h state.h random_policy.h game.h trace.h player.h statistics.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
