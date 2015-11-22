@@ -18,6 +18,7 @@ public:
     virtual ~Player_2048();
     virtual void init(/*possibly put things like config here?*/) = 0;
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves) = 0;
+    virtual void after_move(State_2048 &state, bool is_game_over) = 0;
 
 };
 
@@ -40,6 +41,7 @@ public:
 
     virtual void init();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+    virtual void after_move(State_2048 &, bool) {};
 
 };
 
@@ -58,6 +60,7 @@ public:
 
     virtual void init();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+    virtual void after_move(State_2048 &, bool) {};
 
 };
 
@@ -76,6 +79,7 @@ public:
 
     virtual void init();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+    virtual void after_move(State_2048 &, bool) {};
 
 };
 
@@ -98,6 +102,7 @@ public:
 
     virtual void init();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+    virtual void after_move(State_2048 &, bool) {};
 
     virtual int get_heuristic_values(State_2048 &state, Move_2048 move, int* heuristic_values) = 0;
 };
@@ -157,6 +162,7 @@ public:
 
     virtual void init();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+    virtual void after_move(State_2048 &, bool) {};
 
     virtual double get_heuristic_value(State_2048 &state, Move_2048 move) = 0;
 };
@@ -183,14 +189,14 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-static const int MANY_LEVEL_HEURISTIC_PLAYER_SEARCH_DEPTH = 3;
+static const int MANY_LEVEL_HEURISTIC_PLAYER_SEARCH_DEPTH = 4;
 
 class Many_Level_Heuristic_Player_2048 : public Player_2048 {
 
 private:
 
-    double get_expected_heuristic_value_after_random(State_2048 &state, int depth);
-    double get_heuristic_value_after_move(State_2048 &state, int depth);
+    double get_expected_heuristic_value_after_random(State_2048 &state, int depth, double branch_weight);
+    double get_heuristic_value_after_move(State_2048 &state, int depth, double branch_weight);
 
 public:
 
@@ -199,6 +205,7 @@ public:
 
     virtual void init();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+    virtual void after_move(State_2048 &, bool) {};
 
     virtual double get_heuristic_value(State_2048 &state) = 0;
 };

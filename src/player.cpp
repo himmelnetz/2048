@@ -3,6 +3,9 @@
 
 #include "util.h"
 
+//TEMPORARY TO PRINT OUT SOME DIAGNOSTIC STUFF
+#include <iostream>
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -359,7 +362,7 @@ double Rodney_Player_2048::get_heuristic_value(State_2048 &state, Move_2048 move
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-double Many_Level_Heuristic_Player_2048::get_expected_heuristic_value_after_random(State_2048 &state, int depth) {
+double Many_Level_Heuristic_Player_2048::get_expected_heuristic_value_after_random(State_2048 &state, int depth, double branch_weight) {
     int num_empty_cells = state.get_num_empty_cells();
     Random_Policy* random_policy = state.get_random_policy();
     vector<int> values = random_policy->get_values();
@@ -373,7 +376,7 @@ double Many_Level_Heuristic_Player_2048::get_expected_heuristic_value_after_rand
                     int value = values[i];
                     double weight = normalized_weights[i] / num_empty_cells;
                     State_2048 new_state = state.make_state_after_adding_random_cell(row, col, value);
-                    double new_state_heuristic_value = this->get_heuristic_value_after_move(new_state, depth - 1);
+                    double new_state_heuristic_value = this->get_heuristic_value_after_move(new_state, depth - 1, branch_weight * weight);
                     total_heuristic_value += new_state_heuristic_value * weight;
                 }
             }
@@ -383,8 +386,9 @@ double Many_Level_Heuristic_Player_2048::get_expected_heuristic_value_after_rand
     return total_heuristic_value;
 }
 
-double Many_Level_Heuristic_Player_2048::get_heuristic_value_after_move(State_2048 &state, int depth) {
+double Many_Level_Heuristic_Player_2048::get_heuristic_value_after_move(State_2048 &state, int depth, double branch_weight) {
     assert (depth > 0);
+    //if (depth > 1 && branch_weight < 0.02) {std::cout << depth << "  " << branch_weight << std::endl;}
 
     double max_heuristic_value = 0.0;
     Move_2048 legal_moves[NUM_MOVES];
@@ -395,9 +399,9 @@ double Many_Level_Heuristic_Player_2048::get_heuristic_value_after_move(State_20
     for (int i = 0; i < num_legal_moves; i++) {
         Move_2048 cur_move = legal_moves[i];
         State_2048 state_after_move = state.make_move(cur_move);
-        double cur_heuristic_value = depth == 1
+        double cur_heuristic_value = depth == 1 || branch_weight < 0.05
             ? this->get_heuristic_value(state)
-            : this->get_expected_heuristic_value_after_random(state_after_move, depth);
+            : this->get_expected_heuristic_value_after_random(state_after_move, depth, branch_weight);
         if (i == 0 || cur_heuristic_value > max_heuristic_value) {
             max_heuristic_value = cur_heuristic_value;
         }
@@ -423,7 +427,9 @@ int Many_Level_Heuristic_Player_2048::get_move(State_2048 &state, int num_legal_
     for (int i = 0; i < num_legal_moves; i++) {
         Move_2048 cur_move = legal_moves[i];
         State_2048 state_after_move = state.make_move(cur_move);
-        double cur_heuristic_value = this->get_expected_heuristic_value_after_random(state_after_move, MANY_LEVEL_HEURISTIC_PLAYER_SEARCH_DEPTH);
+        double cur_heuristic_value = this->get_expected_heuristic_value_after_random(state_after_move, MANY_LEVEL_HEURISTIC_PLAYER_SEARCH_DEPTH, 1.0);
+        //double direct_heuristic_value = this->get_heuristic_value(state_after_move);
+        //std::cout << direct_heuristic_value << "   " << cur_heuristic_value << std::endl;
         if (max_move_i == -1 || cur_heuristic_value > max_heuristic_value) {
             max_move_i = i;
             max_heuristic_value = cur_heuristic_value;
@@ -447,6 +453,7 @@ double Silvia_Player_2048::get_neighbor_discomfort(int index_a, int index_b) {
 }
 
 double Silvia_Player_2048::get_neighbor_discomfort_for_cell(int index_board[NUM_ROWS][NUM_COLS], int row, int col, int cur_value_index) {
+    /*
     double total_discomfort = 0.0;
 
     //up
@@ -469,12 +476,60 @@ double Silvia_Player_2048::get_neighbor_discomfort_for_cell(int index_board[NUM_
         int neighbor_value_index = index_board[row][col + 1];
         total_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
     }
+    */
+    //int min_neighbor_index = -2;
+    if (row > 0) {
+        int neighbor_value_index = index_board[row - 1][col];
+        if (neighbor_value_index <= cur_value_index) {
+            return 0.0;
+        }
+        //if (min_neighbor_index == -2 || neighbor_value_index < min_neighbor_index) {
+        //    min_neighbor_index = neighbor_value_index;
+        //}
+    }
+    //down
+    if (row < NUM_ROWS - 1) {
+        int neighbor_value_index = index_board[row + 1][col];
+        if (neighbor_value_index <= cur_value_index) {
+            return 0.0;
+        }
+        //if (min_neighbor_index == -2 || neighbor_value_index < min_neighbor_index) {
+        //    min_neighbor_index = neighbor_value_index;
+        //}
+    }
+    //left
+    if (col > 0) {
+        int neighbor_value_index = index_board[row][col - 1];
+        if (neighbor_value_index <= cur_value_index) {
+            return 0.0;
+        }
+        //if (min_neighbor_index == -2 || neighbor_value_index < min_neighbor_index) {
+        //    min_neighbor_index = neighbor_value_index;
+        //}
+    }
+    //right
+    if (col < NUM_COLS - 1) {
+        int neighbor_value_index = index_board[row][col + 1];
+        if (neighbor_value_index <= cur_value_index) {
+            return 0.0;
+        }
+        //if (min_neighbor_index == -2 || neighbor_value_index < min_neighbor_index) {
+        //    min_neighbor_index = neighbor_value_index;
+        //}
+    }
+    //assert (min_neighbor_index > -2);
 
-    return total_discomfort;
+    //return min_neighbor_index <= cur_value_index
+    //    ? 0.0
+    //    : 100.0;
+    //std::cout << cur_value_index << std::endl;
+    return (NUM_ROWS * NUM_COLS - 1 - ((col * NUM_ROWS) + (NUM_ROWS - row - 1))) * 10.0;
 }
 
 double Silvia_Player_2048::get_location_discomfort(int row, int col, int value_index) {
-    return ((col * NUM_ROWS) + (NUM_ROWS - row - 1)) * value_index;
+    return col % 2 == 0
+        ? ((col * NUM_ROWS) + (NUM_ROWS - row - 1)) * value_index
+        : ((col * NUM_ROWS) + row) * value_index;
 }
 
 Silvia_Player_2048::Silvia_Player_2048() {
@@ -508,10 +563,11 @@ double Silvia_Player_2048::get_heuristic_value(State_2048 &state) {
             }
         }
     }
-    
-    double total_discomfort = total_location_discomfort * 4.0 + total_neighbor_discomfort * 2.0;
-    double weighted_num_empty_cells = state.get_num_empty_cells() * 128.0;
-    return -total_discomfort + weighted_num_empty_cells;
+
+    double total_discomfort = total_location_discomfort * 4.0 + total_neighbor_discomfort * 1.0;
+    double weighted_num_empty_cells = state.get_num_empty_cells() * 140.0;
+    double weighted_score = state.get_score() / 30.0;
+    return -total_discomfort + weighted_num_empty_cells + weighted_score;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

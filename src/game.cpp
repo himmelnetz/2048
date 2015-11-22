@@ -24,7 +24,9 @@ void Game_2048::play_game() {
         //get legal moves, if none are left then end game, ask player what move to do, make the move and add a new random piece (assert it can), loop
         Move_2048 legal_moves[NUM_MOVES];
         int num_legal_moves = this->cur_state.get_legal_moves(legal_moves);
-        if (num_legal_moves == 0) {
+        bool is_game_over = num_legal_moves == 0;
+        this->player->after_move(this->cur_state, is_game_over);
+        if (is_game_over) {
             break;
         }
         boost::posix_time::ptime startTime = boost::posix_time::microsec_clock::local_time();
