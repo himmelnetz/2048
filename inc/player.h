@@ -16,7 +16,7 @@ private:
 public:
 
     virtual ~Player_2048();
-    virtual void init(/*possibly put things like config here?*/) = 0;
+    virtual void on_new_game() = 0;
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves) = 0;
     virtual void after_move(State_2048 &state, bool is_game_over) = 0;
 
@@ -39,7 +39,7 @@ public:
     Console_Player_2048();
     virtual ~Console_Player_2048();
 
-    virtual void init();
+    virtual void on_new_game();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
     virtual void after_move(State_2048 &, bool) {};
 
@@ -58,7 +58,7 @@ public:
     Zed_Player_2048();
     virtual ~Zed_Player_2048();
 
-    virtual void init();
+    virtual void on_new_game();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
     virtual void after_move(State_2048 &, bool) {};
 
@@ -77,7 +77,7 @@ public:
     Bertha_Player_2048();
     virtual ~Bertha_Player_2048();
 
-    virtual void init();
+    virtual void on_new_game();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
     virtual void after_move(State_2048 &, bool) {};
 
@@ -100,7 +100,7 @@ public:
     Single_Level_Heuristic_Player_2048();
     virtual ~Single_Level_Heuristic_Player_2048();
 
-    virtual void init();
+    virtual void on_new_game();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
     virtual void after_move(State_2048 &, bool) {};
 
@@ -160,7 +160,7 @@ public:
     Full_Single_Level_Heuristic_Player_2048();
     virtual ~Full_Single_Level_Heuristic_Player_2048();
 
-    virtual void init();
+    virtual void on_new_game();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
     virtual void after_move(State_2048 &, bool) {};
 
@@ -203,7 +203,7 @@ public:
     Many_Level_Heuristic_Player_2048();
     virtual ~Many_Level_Heuristic_Player_2048();
 
-    virtual void init();
+    virtual void on_new_game();
     virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
     virtual void after_move(State_2048 &, bool) {};
 
@@ -228,6 +228,50 @@ public:
     virtual ~Silvia_Player_2048();
 
     virtual double get_heuristic_value(State_2048 &state);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+static const int NUM_INPUT_NODES = 16 * 8;
+static const int NUM_HIDDEN_NODES = 80;
+static const int NUM_OUTPUT_NODES = 1;
+
+class Oliver_Player_2048 : public Player_2048 {
+
+private:
+
+    const double ALPHA = 0.25;
+    const double BETA = 0.25;
+    const double LAMBDA = 0.7;
+
+    double input_to_hidden_weights[NUM_INPUT_NODES][NUM_HIDDEN_NODES];
+    double hidden_to_output_weights[NUM_HIDDEN_NODES][NUM_OUTPUT_NODES];
+    double hidden_to_output_eligibility_trace[NUM_HIDDEN_NODES][NUM_OUTPUT_NODES];
+    double input_to_output_eligibility_trace[NUM_INPUT_NODES][NUM_HIDDEN_NODES][NUM_OUTPUT_NODES];
+
+    double last_input[NUM_INPUT_NODES];
+    double last_hidden[NUM_HIDDEN_NODES];
+    double last_output[NUM_OUTPUT_NODES];
+
+    void state_to_input(State_2048 &state, double input[NUM_INPUT_NODES]);
+    double sigmoid(double x);
+    void evaluate_input(double input[NUM_INPUT_NODES], double hidden[NUM_HIDDEN_NODES], double output[NUM_OUTPUT_NODES]);
+    int compare_output(double a[NUM_OUTPUT_NODES], double b[NUM_OUTPUT_NODES]);
+    void state_to_final_output(State_2048 &state, double output[NUM_OUTPUT_NODES]);
+    void backpropagate(double actual_output[NUM_OUTPUT_NODES]);
+
+public:
+
+    Oliver_Player_2048(string filename);
+    virtual ~Oliver_Player_2048();
+    bool save_weights_to_file(string filename);
+
+    virtual void on_new_game();
+    virtual int get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves);
+    virtual void after_move(State_2048 &state, bool is_game_over);
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////

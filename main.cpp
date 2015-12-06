@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <pthread.h>
 
-static const int NUM_THREADS = 8;
+static const int NUM_THREADS = 1;
 
 Player_2048* get_player_from_player_name(string player_name) {
     boost::to_lower(player_name);
@@ -25,6 +25,8 @@ Player_2048* get_player_from_player_name(string player_name) {
         return new Rodney_Player_2048();
     } else if (player_name == "silvia") {
         return new Silvia_Player_2048();
+    } else if (player_name == "oliver") {
+        return new Oliver_Player_2048("");
     } else {
         return NULL;
     }
@@ -77,9 +79,11 @@ void* generate_statistics_worker(void* void_arg) {
     int num_games = args->num_games;
 
     for (int i = 0; i < num_games; i++) {
-        //std::cout << "on game " << i + 1 << " for thread " << args->thread_num << std::endl;
         Game_2048 game(player, trace, random_policy);
-        game.play_game();
+        State_2048 end_state = game.play_game();
+        if ((i + 1) % 10 == 0) {
+            std::cout << "for game " << i + 1 << " on thread " << args->thread_num << " score was " << end_state.get_score() << std::endl;
+        }
     }
 
     pthread_exit(NULL);
@@ -149,7 +153,7 @@ int main(int argc, char *argv[]) {
     Player_2048* player = get_player_from_player_name(player_name);
     if (player == NULL) {
         std::cout << "invalid player name: " << player_name << std::endl;
-        std::cout << "valid player names are: zed, bertha, rod, friedrich, rodney, sylvia" << std::endl;
+        std::cout << "valid player names are: zed, bertha, rod, friedrich, rodney, silvia, oliver" << std::endl;
         return -1;
     }
     int return_status;

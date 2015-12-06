@@ -16,10 +16,11 @@ Game_2048::~Game_2048() {
     //nothing right now...
 }
 
-void Game_2048::play_game() {
+State_2048 Game_2048::play_game() {
     this->cur_state.reset_to_initial_state();
     this->trace->start_trace();
     this->trace->on_new_state(this->cur_state);
+    this->player->on_new_game();
     while (true) {
         //get legal moves, if none are left then end game, ask player what move to do, make the move and add a new random piece (assert it can), loop
         Move_2048 legal_moves[NUM_MOVES];
@@ -45,6 +46,7 @@ void Game_2048::play_game() {
         this->trace->on_new_state(this->cur_state);
     }
     this->trace->end_trace();
+    return this->cur_state;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

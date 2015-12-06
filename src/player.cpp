@@ -3,8 +3,12 @@
 
 #include "util.h"
 
+#include <cmath> //for exp()
+#include <random> //for random stuff
+
 //TEMPORARY TO PRINT OUT SOME DIAGNOSTIC STUFF
 #include <iostream>
+#include <unistd.h> // FOR USLEEP
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,7 +82,7 @@ int Console_Player_2048::try_get_move(char c, int num_legal_moves, Move_2048* le
     return -1;
 }
 
-void Console_Player_2048::init() {
+void Console_Player_2048::on_new_game() {
     //nothing right now...
 }
 
@@ -114,7 +118,7 @@ Zed_Player_2048::~Zed_Player_2048() {
     //nothing right now...
 }
 
-void Zed_Player_2048::init() {
+void Zed_Player_2048::on_new_game() {
     //nothing right now...
 }
 
@@ -134,7 +138,7 @@ Bertha_Player_2048::~Bertha_Player_2048() {
     //nothing right now...
 }
 
-void Bertha_Player_2048::init() {
+void Bertha_Player_2048::on_new_game() {
     //nothing right now...
 }
 
@@ -176,7 +180,7 @@ Single_Level_Heuristic_Player_2048::~Single_Level_Heuristic_Player_2048() {
     //nothing right now...
 }
 
-void Single_Level_Heuristic_Player_2048::init() {
+void Single_Level_Heuristic_Player_2048::on_new_game() {
     //nothing right now...
 }
 
@@ -311,7 +315,7 @@ Full_Single_Level_Heuristic_Player_2048::~Full_Single_Level_Heuristic_Player_204
     //nothing right now...
 }
 
-void Full_Single_Level_Heuristic_Player_2048::init() {
+void Full_Single_Level_Heuristic_Player_2048::on_new_game() {
     //nothing right now...
 }
 
@@ -417,7 +421,7 @@ Many_Level_Heuristic_Player_2048::~Many_Level_Heuristic_Player_2048() {
     //nothing right now...
 }
 
-void Many_Level_Heuristic_Player_2048::init() {
+void Many_Level_Heuristic_Player_2048::on_new_game() {
     //nothing right now...
 }
 
@@ -568,6 +572,303 @@ double Silvia_Player_2048::get_heuristic_value(State_2048 &state) {
     double weighted_num_empty_cells = state.get_num_empty_cells() * 140.0;
     double weighted_score = state.get_score() / 30.0;
     return -total_discomfort + weighted_num_empty_cells + weighted_score;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+/*
+artificial neural network attempt based on ideas from td-gammon papers
+*/
+
+//https://webdocs.cs.ualberta.ca/~sutton/book/ebook/node108.html
+//http://modelai.gettysburg.edu/2013/tdgammon/pa4.pdf
+
+void Oliver_Player_2048::state_to_input(State_2048 &state, double input[NUM_INPUT_NODES]) {
+    assert (NUM_INPUT_NODES % 16 == 0);
+    int num_bool_layers = NUM_INPUT_NODES / 16 - 1;
+    int skip = NUM_ROWS * NUM_COLS;
+    for (int row = 0; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            int i = row * NUM_COLS + col;
+            int cell_value = state.get_cell_value(row, col);
+            int value_index = cell_value > 0
+                ? cell_value_to_i(cell_value)
+                : -1;
+            for (int bool_layer = 0; bool_layer < num_bool_layers; bool_layer++) {
+                input[i + skip * bool_layer] = value_index >= bool_layer
+                    ? 1
+                    : 0;
+            }
+            input[i + skip * num_bool_layers] =
+                value_index > num_bool_layers 
+                ? (value_index - num_bool_layers) / 4.0
+                : 0;
+        }
+    }
+/*
+    bool should_assert = false;
+    std::cout << "-----------------" << std::endl;
+    for (int row = 0; row < NUM_ROWS; row++) {
+        for (int col = 0; col < NUM_COLS; col++) {
+            int cell_value = state.get_cell_value(row, col);
+            if (cell_value > 0 && cell_value_to_i(cell_value) > num_bool_layers) {should_assert = true;}
+            std::cout << cell_value << ' ';
+        }
+    }
+    if (should_assert) {
+        for (int i = 0; i < NUM_INPUT_NODES; i++) {
+            if (i % 16 == 0) {std::cout << std::endl;}
+            std::cout << input[i] << ' ';
+        }
+    }
+    std::cout << std::endl << std::endl;
+
+    assert (!should_assert);
+*/
+    return;
+}
+
+double Oliver_Player_2048::sigmoid(double x) {
+    return 1.0 / (1.0 + exp(-x));
+}
+
+void Oliver_Player_2048::evaluate_input(double input[NUM_INPUT_NODES], double hidden[NUM_HIDDEN_NODES], double output[NUM_OUTPUT_NODES]) {
+    //input to hidden
+    for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+        double sum = 0.0;
+        for (int i = 0; i < NUM_INPUT_NODES; i++) {
+            sum += input[i] * this->input_to_hidden_weights[i][j];
+        }
+        hidden[j] = this->sigmoid(sum);
+    }
+
+    //hidden to output
+    for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+        double sum = 0.0;
+        for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+            sum += hidden[j] * this->hidden_to_output_weights[j][k];
+        }
+        output[k] = this->sigmoid(sum);
+    }
+
+    return;
+}
+
+int Oliver_Player_2048::compare_output(double a[NUM_OUTPUT_NODES], double b[NUM_OUTPUT_NODES]) {
+    for (int i = 0; i < NUM_OUTPUT_NODES; i++) {
+        if (a[i] < b[i]) {return -1;}
+        if (a[i] > b[i]) {return 1;}
+    }
+    return 0;
+}
+
+void Oliver_Player_2048::state_to_final_output(State_2048 &state, double output[NUM_OUTPUT_NODES]) {
+    assert (NUM_OUTPUT_NODES == 1);
+    //this basically puts the score between 0 and 1. however, a really bad score has
+    //a decent value, eg 612 -> ~0.4, so might be worth changing so it spreads better
+    //over the space (different log base?)
+    output[0] = log(state.get_score()) / 15.0;
+}
+
+void Oliver_Player_2048::backpropagate(double actual_output[NUM_OUTPUT_NODES]) {
+    double new_input_to_hidden_weights[NUM_INPUT_NODES][NUM_HIDDEN_NODES];
+    double new_hidden_to_output_weights[NUM_HIDDEN_NODES][NUM_OUTPUT_NODES];
+    double new_hidden_to_output_eligibility_trace[NUM_HIDDEN_NODES][NUM_OUTPUT_NODES];
+    double new_input_to_output_eligibility_trace[NUM_INPUT_NODES][NUM_HIDDEN_NODES][NUM_OUTPUT_NODES];
+
+    double error_output[NUM_OUTPUT_NODES];
+    for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+        //error_output[k] = actual_output[k] - this->last_output[k];
+        error_output[k] = this->last_output[k] - actual_output[k];
+    }
+
+    //calculate new hidden to output weights
+    for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+        for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+            double last_weight = this->hidden_to_output_weights[j][k];
+            double error = error_output[k];
+            double eligibility_trace = this->hidden_to_output_eligibility_trace[j][k];
+            double new_weight = last_weight + this->BETA * error * eligibility_trace;
+            new_hidden_to_output_weights[j][k] = new_weight;
+        }
+    }
+
+    //calculate the new input to hidden weights
+    for (int i = 0; i < NUM_INPUT_NODES; i++) {
+        for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+            double last_weight = this->input_to_hidden_weights[i][j];
+            double sum = 0.0;
+            for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+                double error = error_output[k];
+                double eligibility_trace = this->input_to_output_eligibility_trace[i][j][k];
+                sum += error * eligibility_trace;
+            }
+            double new_weight = last_weight + this->ALPHA * sum;
+            new_input_to_hidden_weights[i][j] = new_weight;
+        }
+    }
+
+    //calculate the new hidden to output eligibility traces
+    for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+        for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+            double last_eligibility_trace = this->hidden_to_output_eligibility_trace[j][k];
+            double last_output = this->last_output[k];
+            double last_hidden = this->last_hidden[j];
+            double new_eligibility_trace = this->LAMBDA * last_eligibility_trace +
+                (last_output * (1 - last_output) * last_hidden);
+            new_hidden_to_output_eligibility_trace[j][k] = new_eligibility_trace;
+        }
+    }
+
+    //calculate the new input to output eligibility traces
+    for (int i = 0; i < NUM_INPUT_NODES; i++) {
+        for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+            for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+                double last_eligibility_trace = this->input_to_output_eligibility_trace[i][j][k];
+                double last_input = this->last_input[i];
+                double last_hidden = this->last_hidden[j];
+                double last_output = this->last_output[k];
+                double hidden_to_output_weight = this->hidden_to_output_weights[j][k];
+                double new_eligibility_trace = this->LAMBDA * last_eligibility_trace +
+                    (last_output * (1 - last_output) * hidden_to_output_weight *
+                     last_hidden * (1 - last_hidden) * last_input);
+                new_input_to_output_eligibility_trace[i][j][k] = new_eligibility_trace;
+            }
+        }
+    }
+
+    //copy over new values
+    for (int i = 0; i < NUM_INPUT_NODES; i++) {
+        for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+            this->input_to_hidden_weights[i][j] = new_input_to_hidden_weights[i][j];
+        }
+    }
+    for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+        for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+            this->hidden_to_output_weights[j][k] = new_hidden_to_output_weights[j][k];
+            this->hidden_to_output_eligibility_trace[j][k] = new_hidden_to_output_eligibility_trace[j][k];
+            for (int i = 0; i < NUM_INPUT_NODES; i++) {
+                this->input_to_output_eligibility_trace[i][j][k] = new_input_to_output_eligibility_trace[i][j][k];
+            }
+        }
+    }
+}
+
+Oliver_Player_2048::Oliver_Player_2048(string filename) {
+    if (filename != "") {
+        //TODO load from file
+        assert (false);
+    } else {
+        std::random_device rd;
+        std::mt19937 twister(rd());
+        std::uniform_real_distribution<> unif_dist(-1.0, 1.0);
+        for (int i = 0; i < NUM_INPUT_NODES; i++) {
+            for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+                this->input_to_hidden_weights[i][j] = unif_dist(twister);
+            }
+        }
+        for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+            for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+                this->hidden_to_output_weights[j][k] = unif_dist(twister);
+            }
+        }
+        for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+            for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+                this->hidden_to_output_eligibility_trace[j][k] = 0.0;
+                for (int i = 0; i < NUM_INPUT_NODES; i++) {
+                    this->input_to_output_eligibility_trace[i][j][k] = 0.0;
+                }
+            }
+        }
+    }
+}
+
+Oliver_Player_2048::~Oliver_Player_2048() {
+    //nothing right now (and shouldnt write to file here because that might throw)
+}
+
+bool Oliver_Player_2048::save_weights_to_file(string filename) {
+    //TODO
+    return false;
+}
+
+void Oliver_Player_2048::on_new_game() {
+    //reset eligibility traces
+    /*
+    for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+        for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+            this->hidden_to_output_eligibility_trace[j][k] = 0.0;
+            for (int i = 0; i < NUM_INPUT_NODES; i++) {
+                this->input_to_output_eligibility_trace[i][j][k] = 0.0;
+            }
+        }
+    }
+    */
+}
+
+int Oliver_Player_2048::get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves) {
+    int max_move_i = -1;
+    double max_input[NUM_INPUT_NODES];
+    double max_hidden[NUM_HIDDEN_NODES];
+    double max_output[NUM_OUTPUT_NODES];
+    for (int i = 0; i < NUM_INPUT_NODES; i++) {max_input[i] = 0.0;}
+    for (int j = 0; j < NUM_HIDDEN_NODES; j++) {max_hidden[j] = 0.0;}
+    for (int k = 0; k < NUM_OUTPUT_NODES; k++) {max_output[k] = -1.0;}
+
+    for (int move_i = 0; move_i < num_legal_moves; move_i++) {
+        Move_2048 cur_move = legal_moves[move_i];
+        State_2048 state_after_move = state.make_move(cur_move);
+        double cur_input[NUM_INPUT_NODES];
+        this->state_to_input(state_after_move, cur_input);
+        double cur_hidden[NUM_HIDDEN_NODES];
+        double cur_output[NUM_OUTPUT_NODES];
+        this->evaluate_input(cur_input, cur_hidden, cur_output);
+        if (max_move_i == -1 || this->compare_output(cur_output, max_output) < 0) {
+            max_move_i = move_i;
+            for (int i = 0; i < NUM_INPUT_NODES; i++) {
+                max_input[i] = cur_input[i];
+            }
+            for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+                max_hidden[j] = cur_hidden[j];
+            }
+            for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+                max_output[k] = cur_output[k];
+            }
+        }
+    }
+
+    for (int i = 0; i < NUM_INPUT_NODES; i++) {
+        this->last_input[i] = max_input[i];
+    }
+    for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
+        this->last_hidden[j] = max_hidden[j];
+    }
+    for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
+        this->last_output[k] = max_output[k];
+    }
+
+    return max_move_i;
+}
+
+void Oliver_Player_2048::after_move(State_2048 &state, bool is_game_over) {
+    double actual_output[NUM_OUTPUT_NODES];
+    if (is_game_over) {
+        this->state_to_final_output(state, actual_output);
+        //this->backpropagate(actual_output);
+    } else {
+        return;
+        double cur_input[NUM_INPUT_NODES];
+        this->state_to_input(state, cur_input);
+        double hidden[NUM_HIDDEN_NODES];
+        this->evaluate_input(cur_input, hidden, actual_output);
+    }
+    //if (is_game_over) std::cout << "    actual v expected " << actual_output[0] << "   " << this->last_output[0] << std::endl;
+    //if (is_game_over) std::cout << "    weigth  " << this->hidden_to_output_weights[0][0] << "   ";
+    this->backpropagate(actual_output);
+    //if (is_game_over) std::cout << this->hidden_to_output_weights[0][0] << std::endl;
+    //if (is_game_over) usleep(1 * 100 * 1000);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

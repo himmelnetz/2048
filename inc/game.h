@@ -25,7 +25,7 @@ public:
     Game_2048(Player_2048* player, Trace_2048* trace, Random_Policy* random_policy);
     ~Game_2048();
 
-    void play_game();
+    State_2048 play_game();
 
 };
 
