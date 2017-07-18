@@ -1,5 +1,8 @@
 <?php
 
+# this view generator is very hacky and does things like dump jquery in every html, but it
+# allows for htmls to be self-contained
+
 assert($argc == 2, "need to provide trace file on command line");
 
 $NUM_ROWS = 4;
@@ -124,7 +127,6 @@ td {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
 
 var trace = JSON.parse('<?php echo $trace_json; ?>');
 var NUM_ROWS = trace.num_rows;

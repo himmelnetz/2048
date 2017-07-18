@@ -457,39 +457,12 @@ double Silvia_Player_2048::get_neighbor_discomfort(int index_a, int index_b) {
 }
 
 double Silvia_Player_2048::get_neighbor_discomfort_for_cell(int index_board[NUM_ROWS][NUM_COLS], int row, int col, int cur_value_index) {
-    /*
-    double total_discomfort = 0.0;
-
-    //up
-    if (row > 0) {
-        int neighbor_value_index = index_board[row - 1][col];
-        total_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
-    }
-    //down
-    if (row < NUM_ROWS - 1) {
-        int neighbor_value_index = index_board[row + 1][col];
-        total_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
-    }
-    //left
-    if (col > 0) {
-        int neighbor_value_index = index_board[row][col - 1];
-        total_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
-    }
-    //right
-    if (col < NUM_COLS - 1) {
-        int neighbor_value_index = index_board[row][col + 1];
-        total_discomfort += this->get_neighbor_discomfort(cur_value_index, neighbor_value_index);
-    }
-    */
-    //int min_neighbor_index = -2;
+    // up
     if (row > 0) {
         int neighbor_value_index = index_board[row - 1][col];
         if (neighbor_value_index <= cur_value_index) {
             return 0.0;
         }
-        //if (min_neighbor_index == -2 || neighbor_value_index < min_neighbor_index) {
-        //    min_neighbor_index = neighbor_value_index;
-        //}
     }
     //down
     if (row < NUM_ROWS - 1) {
@@ -497,9 +470,6 @@ double Silvia_Player_2048::get_neighbor_discomfort_for_cell(int index_board[NUM_
         if (neighbor_value_index <= cur_value_index) {
             return 0.0;
         }
-        //if (min_neighbor_index == -2 || neighbor_value_index < min_neighbor_index) {
-        //    min_neighbor_index = neighbor_value_index;
-        //}
     }
     //left
     if (col > 0) {
@@ -507,9 +477,6 @@ double Silvia_Player_2048::get_neighbor_discomfort_for_cell(int index_board[NUM_
         if (neighbor_value_index <= cur_value_index) {
             return 0.0;
         }
-        //if (min_neighbor_index == -2 || neighbor_value_index < min_neighbor_index) {
-        //    min_neighbor_index = neighbor_value_index;
-        //}
     }
     //right
     if (col < NUM_COLS - 1) {
@@ -517,16 +484,8 @@ double Silvia_Player_2048::get_neighbor_discomfort_for_cell(int index_board[NUM_
         if (neighbor_value_index <= cur_value_index) {
             return 0.0;
         }
-        //if (min_neighbor_index == -2 || neighbor_value_index < min_neighbor_index) {
-        //    min_neighbor_index = neighbor_value_index;
-        //}
     }
-    //assert (min_neighbor_index > -2);
 
-    //return min_neighbor_index <= cur_value_index
-    //    ? 0.0
-    //    : 100.0;
-    //std::cout << cur_value_index << std::endl;
     return (NUM_ROWS * NUM_COLS - 1 - ((col * NUM_ROWS) + (NUM_ROWS - row - 1))) * 10.0;
 }
 
@@ -580,6 +539,8 @@ double Silvia_Player_2048::get_heuristic_value(State_2048 &state) {
 
 /*
 artificial neural network attempt based on ideas from td-gammon papers
+
+NOTE: THIS DOESNT CURRENTLY SEEM TO BE LEARNING!
 */
 
 //https://webdocs.cs.ualberta.ca/~sutton/book/ebook/node108.html
@@ -607,26 +568,6 @@ void Oliver_Player_2048::state_to_input(State_2048 &state, double input[NUM_INPU
                 : 0;
         }
     }
-/*
-    bool should_assert = false;
-    std::cout << "-----------------" << std::endl;
-    for (int row = 0; row < NUM_ROWS; row++) {
-        for (int col = 0; col < NUM_COLS; col++) {
-            int cell_value = state.get_cell_value(row, col);
-            if (cell_value > 0 && cell_value_to_i(cell_value) > num_bool_layers) {should_assert = true;}
-            std::cout << cell_value << ' ';
-        }
-    }
-    if (should_assert) {
-        for (int i = 0; i < NUM_INPUT_NODES; i++) {
-            if (i % 16 == 0) {std::cout << std::endl;}
-            std::cout << input[i] << ' ';
-        }
-    }
-    std::cout << std::endl << std::endl;
-
-    assert (!should_assert);
-*/
     return;
 }
 
@@ -796,16 +737,6 @@ bool Oliver_Player_2048::save_weights_to_file(string filename) {
 
 void Oliver_Player_2048::on_new_game() {
     //reset eligibility traces
-    /*
-    for (int j = 0; j < NUM_HIDDEN_NODES; j++) {
-        for (int k = 0; k < NUM_OUTPUT_NODES; k++) {
-            this->hidden_to_output_eligibility_trace[j][k] = 0.0;
-            for (int i = 0; i < NUM_INPUT_NODES; i++) {
-                this->input_to_output_eligibility_trace[i][j][k] = 0.0;
-            }
-        }
-    }
-    */
 }
 
 int Oliver_Player_2048::get_move(State_2048 &state, int num_legal_moves, Move_2048* legal_moves) {
@@ -864,11 +795,7 @@ void Oliver_Player_2048::after_move(State_2048 &state, bool is_game_over) {
         double hidden[NUM_HIDDEN_NODES];
         this->evaluate_input(cur_input, hidden, actual_output);
     }
-    //if (is_game_over) std::cout << "    actual v expected " << actual_output[0] << "   " << this->last_output[0] << std::endl;
-    //if (is_game_over) std::cout << "    weigth  " << this->hidden_to_output_weights[0][0] << "   ";
     this->backpropagate(actual_output);
-    //if (is_game_over) std::cout << this->hidden_to_output_weights[0][0] << std::endl;
-    //if (is_game_over) usleep(1 * 100 * 1000);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

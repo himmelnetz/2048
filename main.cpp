@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <pthread.h>
 
-static const int NUM_THREADS = 1;
+static const int NUM_THREADS = 4;
 
 Player_2048* get_player_from_player_name(string player_name) {
     boost::to_lower(player_name);
@@ -81,28 +81,20 @@ void* generate_statistics_worker(void* void_arg) {
     for (int i = 0; i < num_games; i++) {
         Game_2048 game(player, trace, random_policy);
         State_2048 end_state = game.play_game();
+        // occasionally print out as a sanity check 
         if ((i + 1) % 10 == 0) {
             std::cout << "for game " << i + 1 << " on thread " << args->thread_num << " score was " << end_state.get_score() << std::endl;
         }
     }
+    std::cout << "thread " << args->thread_num << " finished playing " << num_games << " games" << std::endl;
 
     pthread_exit(NULL);
 }
 
 void generate_statistics_for_player_threads(Player_2048* player, int num_games) {
     assert (num_games > 0);
-    /*
-    Random_Policy random_policy = make_standard_random_policy();
-    Player_Statistics_Trace_2048 statistics_trace;
-    for (int i = 0; i < num_games; i++) {
-        std::cout << "on game " << i + 1 << std::endl;
-        Game_2048 game(player, (Trace_2048*) &statistics_trace, &random_policy);
-        game.play_game();
-    }
-    statistics_trace.get_score_statistics().print_statistics();
-    statistics_trace.get_thinking_time_statistics().print_statistics();
-    */
-    /**/
+
+    // there could be rounding error, ignoring that for now
     int num_games_per_thread = (num_games + NUM_THREADS - 1) / NUM_THREADS;
 
     pthread_t pthreads[NUM_THREADS];
@@ -127,7 +119,9 @@ void generate_statistics_for_player_threads(Player_2048* player, int num_games) 
         delete args[i].random_policy;
     }
 
+    std::cout << std::endl << "Score results for player:" << std::endl;
     all_statistics.get_score_statistics().print_statistics();
+    std::cout << std::endl << "Thinking time for player:" << std::endl;
     all_statistics.get_thinking_time_statistics().print_statistics();
     /**/
 }
@@ -144,7 +138,9 @@ string make_generated_filename(string player_name) {
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {
-        std::cout << "usage: ./2048 <mode> <player_name> <n>" << std::endl;
+        std::cout << "usage: ./2048 <mode> <player_name> <n>" << std::endl
+            << "  where <mode> in [traces, stats]" << std::endl
+            << "        <player_name> in [zed, bertha, rod, friedrich, rodney, silvia, oliver]" << std::endl;
         return -1;
     }
     string mode = argv[1];
